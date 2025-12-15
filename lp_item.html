@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LP Item</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #0c1017;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --nav: #1a2535;
+      --nav-top: #40576f;
+      --green: #22c55e;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: radial-gradient(120% 120% at 30% 20%, #111827 0%, #0b0f18 50%, #0a0d14 100%); color: var(--text); overflow-y: scroll; }
+    a { color: var(--text); text-decoration: none; }
+    a:hover { color: #93c5fd; }
+
+    .container { max-width:1900px; margin:0 auto; padding:0 20px; }
+    .topbar { background: var(--nav-top); color:#dbeafe; font-size:13px; }
+    .topbar .container { display:flex; justify-content:space-between; padding:6px 0; }
+    .navbar { background: var(--nav); color:#dbeafe; border-bottom:1px solid #223144; }
+    .navbar .container { display:flex; align-items:center; gap:20px; padding:14px 0; }
+    .brand { font-weight:800; font-size:20px; letter-spacing:0.5px; }
+    .nav-links a { margin-right:16px; font-weight:600; }
+    .subnav { background: var(--nav-top); color:#dbeafe; }
+    .subnav .container { padding:10px 0; font-weight:600; display:flex; gap:16px; flex-wrap:wrap; }
+    .subnav a { color:#dbeafe; opacity:0.9; }
+    .subnav a.active { color:#fff; opacity:1; text-decoration: underline; text-underline-offset: 4px; }
+
+    .layout { max-width:1900px; margin:24px auto; padding:0 20px; }
+    .page { display:grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap:16px; }
+    .panel { grid-column: span 12; background: var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:0 10px 40px rgba(0,0,0,0.35); }
+
+    .header { display:flex; align-items:center; gap:12px; }
+    .icon { width:40px; height:40px; border-radius:8px; background:#0f172a; object-fit:contain; }
+    .title { font-size:22px; font-weight:800; margin:0; }
+    .muted { color: var(--muted); font-size:14px; margin-top:6px; }
+    .pill { display:inline-block; padding:4px 8px; border-radius:999px; background:#1f2937; font-weight:600; font-size:12px; }
+
+    .kpi { display:flex; gap:12px; flex-wrap:wrap; margin-top:14px; }
+    .kpi-item { background:#0f172a; border:1px solid var(--border); border-radius:10px; padding:10px 12px; min-width:180px; }
+    .kpi-label { color: var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px; }
+    .kpi-value { font-size:18px; font-weight:800; }
+
+    .controls { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn-group { display:inline-flex; gap:6px; background:#0f172a; border:1px solid var(--border); padding:4px; border-radius:999px; }
+    .btn { appearance:none; border:0; background:transparent; color:var(--text); padding:6px 10px; border-radius:999px; font-weight:800; font-size:12px; cursor:pointer; }
+    .btn.active { background:#1f2937; }
+    .input { padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#0f172a; color:var(--text); }
+    .radio { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:999px; border:1px solid var(--border); background:#0f172a; font-weight:800; font-size:12px; cursor:pointer; user-select:none; }
+    .radio input { margin:0; }
+    .instant-grid { display:grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap:12px; margin-top:12px; }
+    .instant-kpi { grid-column: span 3; background:#0f172a; border:1px solid var(--border); border-radius:10px; padding:10px 12px; min-width:180px; }
+    @media (max-width: 1100px) { .instant-kpi { grid-column: span 6; } }
+    @media (max-width: 640px) { .instant-kpi { grid-column: span 12; } }
+    .instant-title { font-size:18px; font-weight:900; margin:0; }
+    .instant-sub { color:var(--muted); font-size:13px; margin-top:6px; }
+
+    .chg { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .chg-item { background:#0f172a; border:1px solid var(--border); border-radius:10px; padding:6px 10px; min-width:90px; }
+    .chg-label { color: var(--muted); font-size:11px; font-weight:700; }
+    .chg-val { font-weight:900; font-size:12px; margin-top:4px; }
+    .chg-val.up { color: var(--green); }
+    .chg-val.down { color: var(--red); }
+
+    .chart-wrap { position:relative; margin-top:12px; background:#0f172a; border:1px solid var(--border); border-radius:12px; padding:8px; }
+    .chart-canvas { width:100%; height:260px; display:block; }
+    .chart-tooltip { position:absolute; pointer-events:none; display:none; background:#0b1220; border:1px solid #223144; border-radius:10px; padding:8px; font-size:12px; color:var(--text); box-shadow:0 8px 30px rgba(0,0,0,0.5); max-width: 260px; }
+
+    .table-wrap { overflow-x:auto; overflow-y:visible; max-height:none; }
+    table.data-table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric: tabular-nums; }
+    table.data-table thead th { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color: var(--muted); font-weight:700; padding:10px 8px; background: rgba(15,23,42,0.35); position:sticky; top:0; z-index:3; }
+    table.data-table th, table.data-table td { padding:12px 8px; border-bottom:1px solid rgba(255,255,255,0.06); white-space:nowrap; }
+    table.data-table th.sortable { cursor:pointer; user-select:none; }
+    table.data-table th.sortable:hover { color:#bfdbfe; }
+    table.data-table tbody tr { cursor:pointer; }
+    table.data-table tbody tr:hover td { background: rgba(255,255,255,0.035); }
+    table.data-table td[data-col]:not([data-col="corp"]):not([data-col="faction"]):not([data-col="req"]) { text-align:right; }
+    table.data-table td[data-col="corp"], table.data-table td[data-col="faction"], table.data-table td[data-col="req"] { text-align:left; }
+    table.data-table .sticky-col { position: sticky; left: 0; background: transparent; z-index:2; }
+    table.data-table thead th.sticky-col { z-index: 4; }
+    table.data-table .key { font-weight:700; color:#93c5fd; }
+
+    .logo { width:22px; height:22px; border-radius:4px; background:#0f172a; object-fit:contain; vertical-align:middle; margin-right:8px; }
+    .req-details { max-width: 32ch; white-space: normal; }
+    .req-details summary { cursor:pointer; }
+    .req-summary-text { display:inline-block; max-width: 32ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; }
+    .req-body { margin-top:8px; color: var(--text); white-space: normal; }
+    .req-body ul { margin:0; padding-left:18px; }
+    .req-body li { margin:2px 0; white-space:normal; }
+    .item-id { color: var(--muted); font-weight:700; font-size:12px; margin-left:10px; }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div>Top Link 1 &nbsp;|&nbsp; Top Link 2</div>
+      <div>Found a bug? Let us know</div>
+    </div>
+  </div>
+  <div class="navbar">
+    <div class="container">
+      <div class="brand">EVE Sheets</div>
+      <div class="nav-links">
+        <a href="index.html">System stats</a>
+        <a href="lp.html" style="color:#93c5fd;">LP Shop</a>
+      </div>
+      <div style="flex:1"></div>
+    </div>
+  </div>
+  <div class="subnav">
+    <div class="container">
+      <a href="lp.html">Corporations</a>
+      <a href="lp_items.html" class="active">Items</a>
+      <span style="opacity:.6">Subnav 3</span>
+      <span style="opacity:.6">Subnav 4</span>
+    </div>
+  </div>
+
+  <div class="layout">
+    <div class="page">
+      <div class="panel">
+        <div class="header">
+          <img id="icon" class="icon" alt="" referrerpolicy="no-referrer">
+          <div>
+            <div class="title"><span id="title">LP Item</span><span class="item-id" id="itemIdText"></span></div>
+            <div class="muted"><span class="pill" id="cat">-</span> &nbsp; <span id="meta">-</span></div>
+          </div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-item"><div class="kpi-label">Sell (Jita)</div><div class="kpi-value" id="kpi-sell">-</div></div>
+          <div class="kpi-item"><div class="kpi-label">ISK / LP</div><div class="kpi-value" id="kpi-isklp">-</div></div>
+          <div class="kpi-item"><div class="kpi-label">LP Stores</div><div class="kpi-value" id="kpi-stores">-</div></div>
+          <div class="kpi-item"><div class="kpi-label" title="Estimate of how much LP the market can absorb without price pressure">LP Capacity</div><div class="kpi-value" id="kpi-lpcap">-</div></div>
+          <div class="kpi-item"><div class="kpi-label" title="Shows what share of an item's price comes from LP">LP Weight</div><div class="kpi-value" id="kpi-lpweight">-</div></div>
+        </div>
+      </div>
+
+      <div class="panel" id="instantSellPanel">
+        <div class="header" style="justify-content:space-between; align-items:flex-start;">
+          <div>
+            <div class="instant-title" title="Simulates immediate execution against existing buy orders.">Instant Sell (Buy Orders)</div>
+            <div class="instant-sub">What the market can buy right now</div>
+          </div>
+          <div class="muted" id="instantMeta">Loading...</div>
+        </div>
+
+        <div class="controls" style="margin-top:12px;">
+          <label class="radio"><input type="radio" name="instantMode" id="modeQty" value="qty" checked> Sell quantity</label>
+          <label class="radio"><input type="radio" name="instantMode" id="modeAbove" value="above"> Sell above price</label>
+          <div style="flex:1"></div>
+          <label class="muted" for="instantOffset">Max price offset from best buy (%)</label>
+          <input class="input" id="instantOffset" type="number" min="0" max="50" step="0.1" value="5" style="width:120px;">
+          <label class="muted" for="instantQty" id="instantQtyLabel">Quantity</label>
+          <input class="input" id="instantQty" type="number" min="1" max="1000000" step="1" value="10" style="width:140px;">
+        </div>
+
+        <div class="instant-grid" id="instantKpis" style="margin-top:12px;">
+          <div class="instant-kpi"><div class="kpi-label">Units instantly sellable</div><div class="kpi-value" id="instUnits">-</div></div>
+          <div class="instant-kpi"><div class="kpi-label">Avg sell price</div><div class="kpi-value" id="instAvg">-</div></div>
+          <div class="instant-kpi"><div class="kpi-label">Total ISK received</div><div class="kpi-value" id="instTotal">-</div></div>
+          <div class="instant-kpi"><div class="kpi-label">Orders consumed</div><div class="kpi-value" id="instOrders">-</div></div>
+          <div class="instant-kpi"><div class="kpi-label">Lowest price hit</div><div class="kpi-value" id="instLow">-</div></div>
+          <div class="instant-kpi"><div class="kpi-label">Price floor</div><div class="kpi-value" id="instFloor">-</div></div>
+        </div>
+
+        <div class="muted" style="margin-top:10px;">
+          Based on current buy orders snapshot. Taxes and broker fees are not included. Market conditions may change at any time.
+        </div>
+      </div>
+
+      <div class="panel" id="itemChartPanel">
+        <div class="controls">
+          <div class="btn-group" role="group" aria-label="Chart metric">
+            <button class="btn active" data-chart-mode="price">Price</button>
+            <button class="btn" data-chart-mode="volume">Volume</button>
+          </div>
+          <div class="btn-group" role="group" aria-label="Chart range">
+            <button class="btn active" data-chart-range="7">7d</button>
+            <button class="btn" data-chart-range="30">30d</button>
+            <button class="btn" data-chart-range="90">90d</button>
+          </div>
+          <div style="flex:1"></div>
+          <div class="chg" aria-label="Change">
+            <div class="chg-item"><div class="chg-label">7d %</div><div class="chg-val" id="chg-7d">—</div></div>
+            <div class="chg-item"><div class="chg-label">30d %</div><div class="chg-val" id="chg-30d">—</div></div>
+            <div class="chg-item"><div class="chg-label">90d %</div><div class="chg-val" id="chg-90d">—</div></div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="itemChart" class="chart-canvas"></canvas>
+          <div id="itemChartTooltip" class="chart-tooltip"></div>
+        </div>
+        <div class="muted" id="itemChartMeta" style="margin-top:8px;">—</div>
+      </div>
+
+      <div class="panel">
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th data-col="row">#</th>
+                <th class="sortable sticky-col" data-sort="corpName" data-col="corp">Corporation</th>
+                <th class="sortable" data-sort="corpFaction" data-col="faction">Faction</th>
+                <th class="sortable" data-sort="lpCost" data-col="lpCost">LP Cost</th>
+                <th class="sortable" data-sort="iskCost" data-col="iskCost">ISK Cost (Store)</th>
+                <th data-col="req">Required Items</th>
+                <th class="sortable" data-sort="requiredCost" data-col="reqCost">Other Cost (Jita sell)</th>
+                <th class="sortable" data-sort="qty" data-col="qty">Qty</th>
+                <th class="sortable" data-sort="iskPerLp" data-col="isklp">ISK / LP</th>
+                <th class="sortable" data-sort="lpCapacity" data-col="lpCapacity" title="Estimate of how much LP the market can absorb without price pressure">LP Capacity</th>
+                <th class="sortable" data-sort="lpWeightPct" data-col="lpWeight" title="Shows what share of an item's price comes from LP">LP Weight</th>
+                <th class="sortable" data-sort="risk" data-col="risk">Risk</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="columns.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const itemId = params.get("item");
+
+    const titleEl = document.getElementById("title");
+    const itemIdTextEl = document.getElementById("itemIdText");
+    const iconEl = document.getElementById("icon");
+    const catEl = document.getElementById("cat");
+    const metaEl = document.getElementById("meta");
+    const tbody = document.getElementById("tbody");
+    const tableEl = document.querySelector(".table-wrap table");
+
+    const kpiSell = document.getElementById("kpi-sell");
+    const kpiIskLp = document.getElementById("kpi-isklp");
+    const kpiStores = document.getElementById("kpi-stores");
+    const kpiLpCap = document.getElementById("kpi-lpcap");
+    const kpiLpWeight = document.getElementById("kpi-lpweight");
+
+    const itemChartMeta = document.getElementById("itemChartMeta");
+    const itemChartCanvas = document.getElementById("itemChart");
+    const itemChartTooltip = document.getElementById("itemChartTooltip");
+    const chg7d = document.getElementById("chg-7d");
+    const chg30d = document.getElementById("chg-30d");
+    const chg90d = document.getElementById("chg-90d");
+
+    const instantMeta = document.getElementById("instantMeta");
+    const modeQtyEl = document.getElementById("modeQty");
+    const modeAboveEl = document.getElementById("modeAbove");
+    const instantOffsetEl = document.getElementById("instantOffset");
+    const instantQtyLabelEl = document.getElementById("instantQtyLabel");
+    const instantQtyEl = document.getElementById("instantQty");
+    const instUnitsEl = document.getElementById("instUnits");
+    const instAvgEl = document.getElementById("instAvg");
+    const instTotalEl = document.getElementById("instTotal");
+    const instOrdersEl = document.getElementById("instOrders");
+    const instLowEl = document.getElementById("instLow");
+    const instFloorEl = document.getElementById("instFloor");
+
+    let itemsIndex = [];
+    let offersByItem = {};
+    let sortState = { key: "iskPerLp", dir: "desc" };
+
+    let chartMode = "price"; // price | volume
+    let viewRangeDays = 7; // 7 | 30 | 90
+    let fullSeries = [];
+    let chartSeries = [];
+    let chartUpdated = null;
+    let corpConfig = { corps: {} };
+    let itemConfig = { items: {} };
+    const columnsBtn = document.createElement("button");
+    columnsBtn.type = "button";
+    columnsBtn.className = "btn";
+    columnsBtn.textContent = "Columns";
+    // place button above the offers table
+    const offersPanel = tableEl?.closest(".panel");
+    if (offersPanel) {
+      const header = document.createElement("div");
+      header.className = "controls";
+      header.style.marginBottom = "12px";
+      header.appendChild(columnsBtn);
+      offersPanel.insertBefore(header, offersPanel.firstChild);
+    }
+    const columnsMgr = window.initColumnManager({
+      table: tableEl,
+      storageKey: "lp_item_cols_v1",
+      button: columnsBtn,
+      columns: [
+        { id: "row", label: "#", group: "Main", locked: true },
+        { id: "corp", label: "Corporation", group: "Main", locked: true },
+        { id: "faction", label: "Faction", group: "Main" },
+        { id: "lpCost", label: "LP Cost", group: "LP Store" },
+        { id: "iskCost", label: "ISK Cost (Store)", group: "LP Store" },
+        { id: "req", label: "Required Items", group: "LP Store" },
+        { id: "reqCost", label: "Other Cost", group: "LP Store" },
+        { id: "qty", label: "Qty", group: "Main" },
+        { id: "isklp", label: "ISK/LP", group: "Economy" },
+        { id: "lpCapacity", label: "LP Capacity", group: "LP Metrics" },
+        { id: "lpWeight", label: "LP Weight", group: "LP Metrics" },
+        { id: "risk", label: "Risk", group: "Market" },
+      ],
+    });
+
+    function fmt(v, digits=0) {
+      if (v == null || Number.isNaN(v)) return "—";
+      return Number(v).toLocaleString(undefined, { maximumFractionDigits: digits });
+    }
+
+    function fmtIsk(v) {
+      if (v == null || !Number.isFinite(v)) return "—";
+      return Math.round(v).toLocaleString();
+    }
+
+    function fmtInt(v) {
+      if (v == null || !Number.isFinite(v)) return "-";
+      return Math.round(v).toLocaleString();
+    }
+
+    function isklpColor(v) {
+      if (v == null || !Number.isFinite(v)) return null;
+      if (v >= 1201) return "#3399FF";
+      if (v >= 951) return "#FFFF66";
+      if (v >= 751) return "#FF8C00";
+      if (v >= 651) return "#FF4D4D";
+      if (v >= 501) return "#C00000";
+      return "#8B0000";
+    }
+
+    function fmtPct(v) {
+      if (v == null || !Number.isFinite(v)) return "—";
+      return `${v >= 0 ? "▲" : "▼"} ${Math.abs(v).toFixed(2)}%`;
+    }
+
+    function setPct(el, pct) {
+      if (!el) return;
+      el.textContent = fmtPct(pct);
+      el.classList.remove("up", "down");
+      if (pct == null || !Number.isFinite(pct) || pct === 0) return;
+      el.classList.add(pct >= 0 ? "up" : "down");
+    }
+
+    function calcPct(series, offset) {
+      const vals = series.map(p => {
+        const v = chartMode === "volume" ? p.volume : p.average;
+        return (typeof v === "number" && Number.isFinite(v)) ? v : null;
+      }).filter(v => v != null);
+      const last = vals[vals.length - 1];
+      if (vals.length < 2 || last == null) return null;
+      const idx = Math.max(0, vals.length - 1 - offset);
+      const prev = vals[idx];
+      if (!prev) return null;
+      return ((last - prev) / prev) * 100;
+    }
+
+    function updateChanges() {
+      setPct(chg7d, calcPct(fullSeries, 7));
+      setPct(chg30d, calcPct(fullSeries, 30));
+      setPct(chg90d, calcPct(fullSeries, 90));
+    }
+
+    function reqCell(req = []) {
+      if (!req.length) return "";
+      const shortText = req.map(r => `${r.qty}x ${r.name}`).join(", ");
+      const items = req.map(r => {
+        const p = r.jitaSell != null ? ` (Jita: ${fmt(r.jitaSell,0)})` : "";
+        return `<li>${r.qty}x ${r.name}${p}</li>`;
+      }).join("");
+      return `
+        <details class="req-details">
+          <summary><span class="req-summary-text">${shortText}</span></summary>
+          <div class="req-body"><ul>${items}</ul></div>
+        </details>
+      `;
+    }
+
+    function calcInstantSell(orders, mode, quantity, offsetPct) {
+      const buyOrders = (orders || []).filter((o) => o && typeof o.price === "number" && typeof o.volume_remain === "number");
+      if (!buyOrders.length) return { error: "no_orders" };
+
+      const best = buyOrders.reduce((m, o) => Math.max(m, o.price), 0);
+      const offset = Math.max(0, Math.min(50, Number(offsetPct) || 0));
+      const floor = best * (1 - offset / 100);
+      const eligible = buyOrders
+        .filter((o) => o.price >= floor)
+        .slice()
+        .sort((a, b) => b.price - a.price);
+
+      if (mode === "above") {
+        let units = 0;
+        let total = 0;
+        for (const o of eligible) {
+          const v = Math.max(0, Math.floor(o.volume_remain));
+          if (!v) continue;
+          units += v;
+          total += v * o.price;
+        }
+        return {
+          priceFloor: floor,
+          units,
+          totalIsk: total,
+          avgPrice: units ? total / units : null,
+          ordersConsumed: eligible.length,
+          lowestPriceHit: eligible.length ? eligible[eligible.length - 1].price : null,
+        };
+      }
+
+      const target = Math.max(1, Math.min(1_000_000, Math.floor(Number(quantity) || 10)));
+      let remaining = target;
+      let units = 0;
+      let total = 0;
+      let ordersConsumed = 0;
+      let lowest = null;
+      for (const o of eligible) {
+        if (remaining <= 0) break;
+        const v = Math.max(0, Math.floor(o.volume_remain));
+        if (!v) continue;
+        const take = Math.min(remaining, v);
+        units += take;
+        total += take * o.price;
+        remaining -= take;
+        ordersConsumed += 1;
+        lowest = o.price;
+      }
+
+      return {
+        priceFloor: floor,
+        units,
+        totalIsk: total,
+        avgPrice: units ? total / units : null,
+        ordersConsumed,
+        lowestPriceHit: lowest,
+      };
+    }
+
+    let instantOrders = null;
+    let instantTimer = null;
+
+    function setInstantText(el, v) {
+      if (!el) return;
+      el.textContent = v == null ? "-" : String(v);
+    }
+
+    function renderInstantSell() {
+      const mode = modeAboveEl?.checked ? "above" : "qty";
+      const qty = instantQtyEl?.value;
+      const offset = instantOffsetEl?.value;
+
+      if (!instantOrders || !instantOrders.length) {
+        setInstantText(instUnitsEl, "-");
+        setInstantText(instAvgEl, "-");
+        setInstantText(instTotalEl, "-");
+        setInstantText(instOrdersEl, "-");
+        setInstantText(instLowEl, "-");
+        setInstantText(instFloorEl, "-");
+        return;
+      }
+
+      const r = calcInstantSell(instantOrders, mode, qty, offset);
+      if (r.error) {
+        setInstantText(instUnitsEl, "-");
+        setInstantText(instAvgEl, "-");
+        setInstantText(instTotalEl, "-");
+        setInstantText(instOrdersEl, "-");
+        setInstantText(instLowEl, "-");
+        setInstantText(instFloorEl, "-");
+        return;
+      }
+
+      setInstantText(instUnitsEl, fmtInt(r.units));
+      setInstantText(instAvgEl, r.avgPrice != null ? fmtIsk(r.avgPrice) : "-");
+      setInstantText(instTotalEl, r.totalIsk != null ? fmtIsk(r.totalIsk) : "-");
+      setInstantText(instOrdersEl, fmtInt(r.ordersConsumed));
+      setInstantText(instLowEl, r.lowestPriceHit != null ? fmtIsk(r.lowestPriceHit) : "-");
+      setInstantText(instFloorEl, r.priceFloor != null ? fmtIsk(r.priceFloor) : "-");
+    }
+
+    function scheduleInstantRecalc() {
+      if (instantTimer) clearTimeout(instantTimer);
+      instantTimer = setTimeout(renderInstantSell, 450);
+    }
+
+    async function loadInstantOrders() {
+      if (!itemId) return;
+      if (instantMeta) instantMeta.textContent = "Loading buy orders...";
+      instantOrders = null;
+      renderInstantSell();
+      try {
+        const regionId = 10000002; // The Forge
+        // Pages mode: try static snapshot first (optional). Falls back to /api locally.
+        let data = null;
+        try {
+          const staticRes = await fetch(`/json/buy_orders_${regionId}.json`);
+          if (staticRes.ok) {
+            const snap = await staticRes.json();
+            const list = snap?.ordersByType?.[String(itemId)];
+            if (Array.isArray(list)) {
+              data = {
+                regionId,
+                typeId: itemId,
+                updated: snap.updated || null,
+                orderCount: list.length,
+                orders: list,
+              };
+            }
+          }
+        } catch {
+          // ignore, will try /api
+        }
+
+        if (!data) {
+          const res = await fetch(`/api/buy_orders?region=${regionId}&type=${encodeURIComponent(itemId)}`);
+          data = await res.json();
+          if (!res.ok || data?.error) data = null;
+        }
+
+        if (!data) {
+          if (instantMeta) instantMeta.textContent = "No buy orders snapshot";
+          instantOrders = [];
+          renderInstantSell();
+          return;
+        }
+
+        instantOrders = data.orders || [];
+        if (instantMeta) {
+          const updated = data.updated ? String(data.updated).replace("T", " ").slice(0, 19) + " UTC" : "unknown";
+          instantMeta.textContent = `Region: The Forge · Orders: ${fmtInt(data.orderCount || instantOrders.length)} · Updated: ${updated}`;
+        }
+        renderInstantSell();
+      } catch {
+        if (instantMeta) instantMeta.textContent = "No buy orders snapshot";
+        instantOrders = [];
+        renderInstantSell();
+      }
+    }
+
+    function renderOffers(list, itemMeta) {
+      const lpCapacityFor = (o) => {
+        const d = Number(viewRangeDays);
+        if (d === 7) return o.lpCapacity7 ?? o.lpCapacity30 ?? o.lpCapacity1 ?? null;
+        // 30d and 90d both use the 30d liquidity model for now
+        return o.lpCapacity30 ?? o.lpCapacity7 ?? o.lpCapacity1 ?? null;
+      };
+
+      const rows = list.map((o) => ({ ...o, lpCapacity: lpCapacityFor(o) }));
+      const dir = sortState.dir === "asc" ? 1 : -1;
+      const sorted = rows.sort((a,b)=>{
+        const av = a[sortState.key];
+        const bv = b[sortState.key];
+        if (typeof av === "string") return String(av).localeCompare(String(bv)) * dir;
+        return ((av ?? -Infinity) - (bv ?? -Infinity)) * dir;
+      });
+      tbody.innerHTML = "";
+      for (let i = 0; i < sorted.length; i++) {
+        const o = sorted[i];
+        const tr = document.createElement("tr");
+        const cap = o.lpCapacity;
+        const isklpC = isklpColor(o.iskPerLp);
+        tr.innerHTML = `
+          <td data-col="row">${i + 1}</td>
+          <td data-col="corp" class="sticky-col">
+            <a href="lp_corp.html?corp=${o.corpId}">
+              <img class="logo" src="https://images.evetech.net/corporations/${o.corpId}/logo?size=32" alt="" loading="lazy" referrerpolicy="no-referrer">${o.corpName}
+            </a>
+          </td>
+          <td data-col="faction">${o.corpFaction || "-"}</td>
+          <td data-col="lpCost">${fmt(o.lpCost,0)}</td>
+          <td data-col="iskCost">${fmt(o.iskCost,0)}</td>
+          <td data-col="req">${reqCell(o.requiredItems)}</td>
+          <td data-col="reqCost">${fmt(o.requiredCost,0)}</td>
+          <td data-col="qty">${fmt(o.qty,0)}</td>
+          <td data-col="isklp" style="${isklpC ? `color:${isklpC}; font-weight:900;` : ""}">${o.iskPerLp != null ? fmt(o.iskPerLp,0) : "-"}</td>
+          <td data-col="lpCapacity" title="Estimate of how much LP the market can absorb without price pressure">${cap != null ? fmt(cap,0) : "-"}</td>
+          <td data-col="lpWeight" title="Shows what share of an item's price comes from LP">${o.lpWeightPct != null ? fmt(o.lpWeightPct,1) + "%" : "-"}</td>
+          <td data-col="risk">${o.risk || "-"}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      if (columnsMgr) columnsMgr.apply();
+
+      if (itemMeta) {
+        titleEl.textContent = itemMeta.itemName;
+        iconEl.src = `https://images.evetech.net/types/${itemMeta.itemId}/icon?size=64`;
+        catEl.textContent = itemMeta.category || "-";
+        metaEl.textContent = itemMeta.factions?.length ? itemMeta.factions.join(" / ") : "-";
+        kpiSell.textContent = itemMeta.sellPrice != null ? fmtIsk(itemMeta.sellPrice) : "-";
+        kpiIskLp.textContent = itemMeta.medianIskPerLp != null ? fmt(itemMeta.medianIskPerLp,0) : "-";
+        const c = isklpColor(itemMeta.medianIskPerLp);
+        if (c) { kpiIskLp.style.color = c; kpiIskLp.style.fontWeight = "900"; }
+        kpiStores.textContent = fmt(itemMeta.lpStores,0);
+        const cap =
+          viewRangeDays === 7
+            ? (itemMeta.lpCapacity7 ?? itemMeta.lpCapacity30 ?? itemMeta.lpCapacity1 ?? null)
+            : (itemMeta.lpCapacity30 ?? itemMeta.lpCapacity7 ?? itemMeta.lpCapacity1 ?? null);
+        kpiLpCap.textContent = cap != null ? fmt(cap, 0) : "-";
+        kpiLpWeight.textContent = itemMeta.lpWeightPct != null ? `${fmt(itemMeta.lpWeightPct, 1)}%` : "-";
+        document.title = itemMeta.itemName;
+      }
+    }
+
+    function resizeCanvasToCss(canvas) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      const w = Math.max(1, Math.floor(rect.width * dpr));
+      const h = Math.max(1, Math.floor(rect.height * dpr));
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+      return { w, h, dpr };
+    }
+
+    function drawChart() {
+      if (!itemChartCanvas) return;
+      const ctx = itemChartCanvas.getContext("2d");
+      const { w, h, dpr } = resizeCanvasToCss(itemChartCanvas);
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, w, h);
+      ctx.scale(dpr, dpr);
+
+      const pad = { l: 52, r: 14, t: 12, b: 26 };
+      const cssW = w / dpr;
+      const cssH = h / dpr;
+      const plotW = cssW - pad.l - pad.r;
+      const plotH = cssH - pad.t - pad.b;
+
+      const series = (chartSeries || []).filter(p => p && typeof p.date === "string");
+      const values = series.map(p => {
+        const v = chartMode === "volume" ? p.volume : p.average;
+        return typeof v === "number" ? v : null;
+      });
+      const present = values.filter(v => typeof v === "number");
+      if (!present.length) {
+        ctx.fillStyle = "#9ca3af";
+        ctx.font = "12px Segoe UI, system-ui, sans-serif";
+        ctx.fillText("No market history", pad.l, pad.t + 14);
+        return;
+      }
+
+      const vMin = Math.min(...present);
+      const vMax = Math.max(...present);
+      const span = vMax - vMin || 1;
+      const minY = vMin - span * 0.05;
+      const maxY = vMax + span * 0.08;
+
+      const firstVal = present[0];
+      const lastVal = present[present.length - 1];
+      const up = lastVal >= firstVal;
+      const stroke = chartMode === "volume" ? "#60a5fa" : (up ? "#22c55e" : "#ef4444");
+
+      const xFor = (idx) => pad.l + (idx / Math.max(1, series.length - 1)) * plotW;
+      const yFor = (v) => pad.t + (1 - (v - minY) / (maxY - minY)) * plotH;
+
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const y = pad.t + (i / 4) * plotH;
+        ctx.beginPath();
+        ctx.moveTo(pad.l, y);
+        ctx.lineTo(pad.l + plotW, y);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = "#9ca3af";
+      ctx.font = "11px Segoe UI, system-ui, sans-serif";
+      const ticks = [maxY, (minY + maxY) / 2, minY];
+      ticks.forEach((tv) => {
+        const y = yFor(tv);
+        const label = chartMode === "volume" ? fmt(tv, 0) : fmtIsk(tv);
+        ctx.fillText(label, 8, y + 4);
+      });
+
+      ctx.beginPath();
+      let started = false;
+      for (let i = 0; i < series.length; i++) {
+        const v = chartMode === "volume" ? series[i].volume : series[i].average;
+        if (typeof v !== "number") { started = false; continue; }
+        const x = xFor(i);
+        const y = yFor(v);
+        if (!started) { ctx.moveTo(x, y); started = true; }
+        else ctx.lineTo(x, y);
+      }
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.lineTo(pad.l + plotW, pad.t + plotH);
+      ctx.lineTo(pad.l, pad.t + plotH);
+      ctx.closePath();
+      const grad = ctx.createLinearGradient(0, pad.t, 0, pad.t + plotH);
+      grad.addColorStop(0, stroke + "55");
+      grad.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = grad;
+      ctx.fill();
+    }
+
+    function hideTooltip() {
+      itemChartTooltip.style.display = "none";
+    }
+
+    function attachTooltip() {
+      const canvas = itemChartCanvas;
+      if (!canvas) return;
+      canvas.addEventListener("mousemove", (ev) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = ev.clientX - rect.left;
+        const y = ev.clientY - rect.top;
+        const series = (chartSeries || []).filter(p => p && typeof p.date === "string");
+        if (!series.length) return;
+
+        const padL = 52;
+        const padR = 14;
+        const plotW = rect.width - padL - padR;
+        const idx = Math.round(((x - padL) / Math.max(1, plotW)) * (series.length - 1));
+        const i = Math.max(0, Math.min(series.length - 1, idx));
+        const p = series[i];
+        const value = chartMode === "volume" ? p.volume : p.average;
+        if (typeof value !== "number") { hideTooltip(); return; }
+
+        const valueText = chartMode === "volume" ? fmt(value, 0) : fmtIsk(value);
+        itemChartTooltip.innerHTML = `<div><b>${p.date}</b></div><div>${chartMode === "volume" ? "Volume" : "Avg price"}: ${valueText}</div>`;
+        itemChartTooltip.style.left = `${Math.min(rect.width - 12, x + 12)}px`;
+        itemChartTooltip.style.top = `${Math.max(8, y - 10)}px`;
+        itemChartTooltip.style.display = "block";
+      });
+      canvas.addEventListener("mouseleave", hideTooltip);
+    }
+
+    function sliceSeries(series, rangeDays) {
+      const s = (series || []).filter(p => p && typeof p.date === "string");
+      return s.slice(-rangeDays);
+    }
+
+    function updateViewSeries() {
+      chartSeries = sliceSeries(fullSeries, viewRangeDays);
+      drawChart();
+    }
+
+    async function loadHistory90d() {
+      if (!itemId) return;
+      itemChartMeta.textContent = "Loading market history...";
+      try {
+        // Pages mode: use prebuilt history bundle if present. Falls back to /api locally.
+        let data = null;
+        try {
+          const staticRes = await fetch(`/json/market_history_10000002_90d.json`);
+          if (staticRes.ok) {
+            const bundle = await staticRes.json();
+            const s = bundle?.seriesByType?.[String(itemId)];
+            if (Array.isArray(s)) {
+              data = { series: s, updated: bundle.updated || null, error: null };
+            }
+          }
+        } catch {
+          // ignore, will try /api
+        }
+
+        if (!data) {
+          const r = await fetch(`/api/market_history?region=10000002&type=${encodeURIComponent(itemId)}&days=90`);
+          data = await r.json();
+        }
+
+        fullSeries = data.series || [];
+        chartUpdated = data.updated || null;
+        updateViewSeries();
+        updateChanges();
+        const last = fullSeries.filter(p => typeof p.average === "number" || typeof p.volume === "number").slice(-1)[0];
+        itemChartMeta.textContent = (last ? `Updated: ${String(chartUpdated || "").slice(0,10)}` : (data?.error ? `No data (${data.error})` : "No market history"));
+      } catch {
+        fullSeries = [];
+        chartUpdated = null;
+        itemChartMeta.textContent = "Failed to load market history";
+        updateViewSeries();
+        updateChanges();
+      }
+    }
+
+    async function init() {
+      const [r1, r2, cfgRes, itemCfgRes] = await Promise.all([
+        fetch("/json/lp_items.json"),
+        fetch("/json/lp_item_offers.json"),
+        fetch("/config/lp_corps_config.json").catch(() => null),
+        fetch("/config/lp_items_config.json").catch(() => null),
+      ]);
+      itemsIndex = (await r1.json()).items || [];
+      offersByItem = await r2.json();
+      if (cfgRes && cfgRes.ok) {
+        try { corpConfig = await cfgRes.json(); } catch { /* ignore */ }
+      }
+      if (itemCfgRes && itemCfgRes.ok) {
+        try { itemConfig = await itemCfgRes.json(); } catch { /* ignore */ }
+      }
+
+      if (itemIdTextEl) itemIdTextEl.textContent = itemId ? `ID: ${itemId}` : "";
+      const itemCfg = itemConfig?.items?.[String(itemId)];
+      if (itemCfg?.hide) {
+        titleEl.textContent = "Hidden item";
+        metaEl.textContent = "Hidden by config";
+        tbody.innerHTML = "";
+        return;
+      }
+
+      const meta = itemsIndex.find(i => String(i.itemId) === String(itemId));
+      if (meta?.unique && meta.uniqueCorpId != null && corpConfig?.corps?.[String(meta.uniqueCorpId)]?.hide) {
+        titleEl.textContent = "Hidden item";
+        metaEl.textContent = "Hidden by config";
+        tbody.innerHTML = "";
+        return;
+      }
+
+      const list = (offersByItem[String(itemId)] || []).filter(o => !corpConfig?.corps?.[String(o.corpId)]?.hide);
+      renderOffers(list, meta);
+
+      await loadHistory90d();
+      await loadInstantOrders();
+    }
+
+    document.querySelectorAll("th.sortable").forEach(th => {
+      th.addEventListener("click", ()=>{
+        const key = th.dataset.sort;
+        if (sortState.key === key) sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+        else { sortState.key = key; sortState.dir = "desc"; }
+        const meta = itemsIndex.find(i => String(i.itemId) === String(itemId));
+        const list = offersByItem[String(itemId)] || [];
+        renderOffers(list, meta);
+      });
+    });
+
+    document.querySelectorAll("#itemChartPanel .btn[data-chart-mode]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#itemChartPanel .btn[data-chart-mode]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        chartMode = btn.dataset.chartMode;
+        updateViewSeries();
+        updateChanges();
+      });
+    });
+
+    document.querySelectorAll("#itemChartPanel .btn[data-chart-range]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#itemChartPanel .btn[data-chart-range]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        viewRangeDays = Number(btn.dataset.chartRange || 7);
+        updateViewSeries();
+        const meta = itemsIndex.find(i => String(i.itemId) === String(itemId));
+        const list = (offersByItem[String(itemId)] || []).filter(o => !corpConfig?.corps?.[String(o.corpId)]?.hide);
+        renderOffers(list, meta);
+      });
+    });
+
+    window.addEventListener("resize", () => drawChart());
+    attachTooltip();
+
+    // Instant Sell (Buy Orders)
+    if (modeQtyEl && modeAboveEl) {
+      [modeQtyEl, modeAboveEl].forEach((el) => el.addEventListener("change", () => {
+        const isAbove = modeAboveEl.checked;
+        if (instantQtyEl) instantQtyEl.style.display = isAbove ? "none" : "";
+        if (instantQtyLabelEl) instantQtyLabelEl.style.display = isAbove ? "none" : "";
+        scheduleInstantRecalc();
+      }));
+      const isAbove = modeAboveEl.checked;
+      if (instantQtyEl) instantQtyEl.style.display = isAbove ? "none" : "";
+      if (instantQtyLabelEl) instantQtyLabelEl.style.display = isAbove ? "none" : "";
+    }
+    [instantOffsetEl, instantQtyEl].filter(Boolean).forEach((el) => {
+      el.addEventListener("input", scheduleInstantRecalc);
+      el.addEventListener("change", scheduleInstantRecalc);
+    });
+    renderInstantSell();
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,707 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LP Store Items</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #0c1017;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --nav: #1a2535;
+      --nav-top: #40576f;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: radial-gradient(120% 120% at 30% 20%, #111827 0%, #0b0f18 50%, #0a0d14 100%); color: var(--text); overflow-y: scroll; }
+    a { color: var(--text); text-decoration: none; }
+    a:hover { color: #93c5fd; }
+
+    .container { max-width:1900px; margin:0 auto; padding:0 20px; }
+    .topbar { background: var(--nav-top); color:#dbeafe; font-size:13px; }
+    .topbar .container { display:flex; justify-content:space-between; padding:6px 0; }
+    .navbar { background: var(--nav); color:#dbeafe; border-bottom:1px solid #223144; }
+    .navbar .container { display:flex; align-items:center; gap:20px; padding:14px 0; }
+    .brand { font-weight:800; font-size:20px; letter-spacing:0.5px; }
+    .nav-links a { margin-right:16px; font-weight:600; }
+    .subnav { background: var(--nav-top); color:#dbeafe; }
+    .subnav .container { padding:10px 0; font-weight:600; display:flex; gap:16px; flex-wrap:wrap; }
+    .subnav a { color:#dbeafe; opacity:0.9; }
+    .subnav a.active { color:#fff; opacity:1; text-decoration: underline; text-underline-offset: 4px; }
+
+    .shell { max-width:1900px; margin:24px auto; padding:0 20px; display:grid; grid-template-columns: 1fr; gap:16px; align-items:start; }
+    .sidebar { display:none; }
+    .main { display:flex; justify-content:center; }
+    .main-inner { width:min(1900px, 100%); }
+    @media (max-width: 1200px) { .shell { grid-template-columns: 1fr; } .main { justify-content:stretch; } .main-inner { width:100%; } }
+
+    .page { display:grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap:16px; align-items:start; }
+    .panel { grid-column: span 12; background: var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:0 10px 40px rgba(0,0,0,0.35); }
+    .panel h1 { margin:0 0 4px 0; font-size:22px; }
+    .muted { color: var(--muted); font-size:14px; margin:0; }
+
+    .controls { display:flex; flex-direction:column; gap:10px; margin:10px 0 0; }
+    .controls-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .select, .input { padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:#0f172a; color:var(--text); }
+    .btn-group { display:flex; gap:8px; flex-wrap:wrap; }
+    .btn { padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:#0f172a; color:var(--text); font-weight:700; cursor:pointer; }
+    .btn.active { outline:2px solid rgba(147,197,253,0.6); border-color:#2b3b53; }
+    .pill { display:inline-flex; align-items:center; padding:8px 10px; border-radius:10px; background:#0f172a; border:1px solid var(--border); font-weight:900; font-size:12px; color: var(--text); }
+    .control-spacer { flex: 1; }
+    .action-btn { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:#0f172a; color:var(--text); font-weight:900; font-size:12px; cursor:pointer; }
+    .action-btn:hover { color:#bfdbfe; }
+    .action-btn .ico { opacity:.9; font-weight:900; }
+    .dropdown { position: relative; display:inline-block; }
+    .dropdown-panel { position:absolute; right:0; top:calc(100% + 8px); width: 260px; background:#111827; border:1px solid var(--border); border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.55); padding:10px; display:none; z-index: 50; }
+    .dropdown-panel .opt { display:flex; justify-content:space-between; align-items:center; padding:10px 10px; border-radius:10px; cursor:pointer; font-weight:800; }
+    .dropdown-panel .opt:hover { background: rgba(255,255,255,0.04); }
+    .dropdown-panel .opt .check { color:#93c5fd; font-weight:900; }
+    .dropdown-panel .range { display:flex; gap:10px; margin-top:10px; }
+    .dropdown-panel .range input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#0f172a; color:var(--text); }
+    .dropdown-panel .foot { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+    .dropdown-panel .link { appearance:none; border:0; background:transparent; color:#93c5fd; font-weight:900; cursor:pointer; padding:8px 6px; }
+    .dropdown-panel .apply { appearance:none; border:1px solid #1d4ed8; background:#2563eb; color:#fff; border-radius:10px; padding:8px 12px; font-weight:900; cursor:pointer; }
+
+    .field label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .check { display:flex; align-items:center; gap:8px; color:var(--text); font-size:14px; }
+
+    .table-wrap { overflow-x:auto; overflow-y:visible; max-height:none; }
+    table.data-table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric: tabular-nums; }
+    table.data-table thead th { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color: var(--muted); font-weight:700; padding:10px 8px; background: rgba(15,23,42,0.35); position: sticky; top:0; z-index:3; }
+    table.data-table th, table.data-table td { padding:12px 8px; border-bottom:1px solid rgba(255,255,255,0.06); white-space:nowrap; }
+    table.data-table th.sortable { cursor:pointer; user-select:none; }
+    table.data-table th.sortable:hover { color:#bfdbfe; }
+    table.data-table tbody tr { cursor:pointer; }
+    table.data-table tbody tr:hover td { background: rgba(255,255,255,0.035); }
+    table.data-table td[data-col]:not([data-col="item"]):not([data-col="category"]):not([data-col="faction"]):not([data-col="risk"]) { text-align:right; }
+    table.data-table td[data-col="risk"] { text-align:center; }
+
+    table.data-table .sticky-col { position: sticky; left: 0; background: transparent; z-index:2; }
+    table.data-table thead th.sticky-col { z-index: 4; }
+
+    table.data-table .key { font-weight:700; color:#93c5fd; }
+    table.data-table .subtle { color: rgba(229,231,235,0.75); }
+
+    table.data-table .lpw { display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+    table.data-table .lpw-bar { width: 92px; height: 4px; border-radius: 999px; background: rgba(255,255,255,0.10); overflow:hidden; }
+    table.data-table .lpw-bar > i { display:block; height:100%; background:#93c5fd; opacity:0.9; }
+
+    .item-cell { display:flex; align-items:center; gap:8px; }
+    .item-icon { width:22px; height:22px; border-radius:4px; background:#0f172a; object-fit:contain; }
+    .label { display:inline-block; padding:2px 6px; border-radius:999px; border:1px solid rgba(255,255,255,0.10); background: transparent; font-weight:600; font-size:12px; color: rgba(229,231,235,0.85); }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div>Top Link 1 &nbsp;|&nbsp; Top Link 2</div>
+      <div>Found a bug? Let us know</div>
+    </div>
+  </div>
+  <div class="navbar">
+    <div class="container">
+      <div class="brand">EVE Sheets</div>
+      <div class="nav-links">
+        <a href="index.html">System stats</a>
+        <a href="lp.html" style="color:#93c5fd;">LP Shop</a>
+      </div>
+      <div style="flex:1"></div>
+    </div>
+  </div>
+  <div class="subnav">
+    <div class="container">
+      <a href="lp.html">Corporations</a>
+      <a href="lp_items.html" class="active">Items</a>
+      <span style="opacity:.6">Subnav 3</span>
+      <span style="opacity:.6">Subnav 4</span>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="main">
+      <div class="main-inner">
+        <div class="page">
+          <div class="panel">
+            <h1>LP Store Items</h1>
+            <div class="muted">Browse all items available in Loyalty Point stores</div>
+            <div class="controls">
+              <div class="controls-row">
+              <span class="muted">Region pricing:</span>
+              <select id="region" class="select" disabled>
+                <option value="10000002">The Forge</option>
+              </select>
+              <span class="muted">Period:</span>
+              <div class="btn-group" role="group" aria-label="Period">
+                <button class="btn" data-period="1">24h</button>
+                <button class="btn active" data-period="7">7d</button>
+                <button class="btn" data-period="30">30d</button>
+              </div>
+              </div>
+              <div class="controls-row">
+              <input id="q" class="input" placeholder="Item name..." style="display:none;">
+              <select id="cat" class="select" style="min-width:220px;">
+                <option value="">All categories</option>
+              </select>
+              <select id="faction" class="select" style="min-width:220px;">
+                <option value="">All factions</option>
+              </select>
+              <input id="storesMin" class="input" type="number" min="1" value="1" style="display:none;" aria-label="LP stores minimum">
+              <label class="check" style="display:none;"><input id="excludeConcord" type="checkbox"> Exclude CONCORD-only items</label>
+              <div class="control-spacer"></div>
+              <div class="pill" id="count">Items: 0</div>
+              <div class="dropdown" id="isklpDropdown">
+                <button class="action-btn" id="isklpBtn" type="button">ISK/LP</button>
+                <div class="dropdown-panel" id="isklpPanel">
+                  <div class="opt" data-preset="any"><span>Any</span><span class="check" data-check="any"></span></div>
+                  <div class="opt" data-preset="1000"><span>&ge; 1000</span><span class="check" data-check="1000"></span></div>
+                  <div class="opt" data-preset="2000"><span>&ge; 2000</span><span class="check" data-check="2000"></span></div>
+                  <div class="opt" data-preset="3000"><span>&ge; 3000</span><span class="check" data-check="3000"></span></div>
+                  <div class="range">
+                    <input id="isklpMinBox" placeholder="Min">
+                    <input id="isklpMaxBox" placeholder="Max">
+                  </div>
+                  <div class="foot">
+                    <button class="link" type="button" id="isklpReset">Reset</button>
+                    <button class="apply" type="button" id="isklpApply">Apply</button>
+                  </div>
+                </div>
+              </div>
+              <div class="dropdown" id="volDropdown">
+                <button class="action-btn" id="volBtn" type="button">Volume (Raw)</button>
+                <div class="dropdown-panel" id="volPanel">
+                  <div class="opt" data-preset="any"><span>Any</span><span class="check" data-check="any"></span></div>
+                  <div class="opt" data-preset="5"><span>&ge; 5</span><span class="check" data-check="5"></span></div>
+                  <div class="opt" data-preset="50"><span>&ge; 50</span><span class="check" data-check="50"></span></div>
+                  <div class="opt" data-preset="100"><span>&ge; 100</span><span class="check" data-check="100"></span></div>
+                  <div class="range">
+                    <input id="volMinBox" placeholder="Min">
+                    <input id="volMaxBox" placeholder="Max">
+                  </div>
+                  <div class="foot">
+                    <button class="link" type="button" id="volReset">Reset</button>
+                    <button class="apply" type="button" id="volApply">Apply</button>
+                  </div>
+                </div>
+              </div>
+              <button class="action-btn" id="columnsBtn" type="button">Columns</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th data-col="row">#</th>
+                    <th class="sortable sticky-col" data-sort="itemName" data-col="item">Item</th>
+                    <th class="sortable" data-sort="itemId" data-col="itemId">Item ID</th>
+                    <th class="sortable" data-sort="category" data-col="category">Category</th>
+                    <th class="sortable" data-sort="medianIskPerLp" data-col="isklp">ISK/LP</th>
+                    <th class="sortable" data-sort="sellPrice" data-col="price">Price (Jita)</th>
+                    <th class="sortable" data-sort="bestQty" data-col="qty" title="Quantity you receive from the LP store offer">Q-ty</th>
+                    <th class="sortable" data-sort="bestIskCost" data-col="iskCost">ISK Cost (Store)</th>
+                    <th data-col="otherReq">Other Requirements</th>
+                    <th class="sortable" data-sort="bestOtherCost" data-col="otherCost">Other Cost</th>
+                    <th class="sortable" data-sort="lpStores" data-col="stores">LP Stores</th>
+                    <th class="sortable" data-sort="volume" data-col="volume">Volume (Raw)</th>
+                    <th class="sortable" data-sort="volumeNorm" data-col="volumeNorm" title="Volume normalized by LP store quantity">Volume (Norm.)</th>
+                    <th class="sortable" data-sort="lpCapacity" data-col="lpCapacity" title="Estimate of how much LP the market can absorb without price pressure">LP Capacity</th>
+                    <th class="sortable" data-sort="lpWeightPct" data-col="lpWeight" title="Shows what share of an item's price comes from LP">LP Weight</th>
+                    <th class="sortable" data-sort="risk" data-col="risk">Risk</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="columns.js"></script>
+  <script>
+    const tbody = document.getElementById("tbody");
+    const countEl = document.getElementById("count");
+    const tableEl = document.querySelector(".table-wrap table");
+
+    const qEl = document.getElementById("q");
+    const catEl = document.getElementById("cat");
+    const factionEl = document.getElementById("faction");
+    const storesMinEl = document.getElementById("storesMin");
+    const excludeConcordEl = document.getElementById("excludeConcord");
+    const periodBtns = Array.from(document.querySelectorAll(".btn[data-period]"));
+    const isklpBtn = document.getElementById("isklpBtn");
+    const isklpPanel = document.getElementById("isklpPanel");
+    const isklpResetBtn = document.getElementById("isklpReset");
+    const isklpApplyBtn = document.getElementById("isklpApply");
+    const isklpMinBox = document.getElementById("isklpMinBox");
+    const isklpMaxBox = document.getElementById("isklpMaxBox");
+    const volBtn = document.getElementById("volBtn");
+    const volPanel = document.getElementById("volPanel");
+    const volResetBtn = document.getElementById("volReset");
+    const volApplyBtn = document.getElementById("volApply");
+    const volMinBox = document.getElementById("volMinBox");
+    const volMaxBox = document.getElementById("volMaxBox");
+    const columnsBtn = document.getElementById("columnsBtn");
+
+    let items = [];
+    let corpConfig = { corps: {} };
+    let itemConfig = { items: {} };
+    let sortState = { key: "medianIskPerLp", dir: "desc" };
+    let periodDays = 7;
+
+    function loadIskLpFilter() {
+      try {
+        const raw = localStorage.getItem("lp_items_isklp_filter_v1");
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (parsed && (parsed.min != null || parsed.max != null)) return parsed;
+      } catch { /* ignore */ }
+      return { min: null, max: null }; // default Any
+    }
+    function saveIskLpFilter(v) {
+      localStorage.setItem("lp_items_isklp_filter_v1", JSON.stringify(v));
+    }
+
+    function loadVolFilter() {
+      try {
+        const raw = localStorage.getItem("lp_items_vol_filter_v1");
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (parsed && (parsed.min != null || parsed.max != null)) return parsed;
+      } catch { /* ignore */ }
+      return { min: 5, max: null }; // default >=5
+    }
+    function saveVolFilter(v) {
+      localStorage.setItem("lp_items_vol_filter_v1", JSON.stringify(v));
+    }
+
+    let isklpFilter = loadIskLpFilter();
+    let isklpDraft = { ...isklpFilter };
+    let volFilter = loadVolFilter();
+    let volDraft = { ...volFilter };
+
+    function updateIskLpButton() {
+      if (!isklpBtn) return;
+      let label = "ISK/LP";
+      if (isklpFilter.min == null && isklpFilter.max == null) {
+        // Any
+      } else if (isklpFilter.max == null) {
+        label += ` \u2265 ${isklpFilter.min}`;
+      } else {
+        label += ` ${isklpFilter.min ?? ""}-${isklpFilter.max ?? ""}`;
+      }
+      isklpBtn.textContent = label;
+    }
+
+    function updateVolButton() {
+      if (!volBtn) return;
+      const d = Number(periodDays);
+      const suffix = d === 1 ? "24h" : `${d}d`;
+      let label = `Volume (Raw, ${suffix})`;
+      if (volFilter.min == null && volFilter.max == null) {
+        // Any
+      } else if (volFilter.max == null) {
+        label += ` \u2265 ${volFilter.min}`;
+      } else {
+        label += ` ${(volFilter.min ?? "")}-${(volFilter.max ?? "")}`;
+      }
+      volBtn.textContent = label;
+    }
+
+    function renderIskLpPanel() {
+      const checks = Array.from(isklpPanel.querySelectorAll("[data-check]"));
+      for (const el of checks) el.textContent = "";
+      const preset =
+        (isklpDraft.min == null && isklpDraft.max == null) ? "any" :
+        (isklpDraft.max == null && [1000, 2000, 3000].includes(Number(isklpDraft.min))) ? String(Number(isklpDraft.min)) :
+        null;
+      if (preset) {
+        const el = isklpPanel.querySelector(`[data-check="${preset}"]`);
+        if (el) el.textContent = "\u2713";
+      }
+      if (isklpMinBox) isklpMinBox.value = isklpDraft.min == null ? "" : String(isklpDraft.min);
+      if (isklpMaxBox) isklpMaxBox.value = isklpDraft.max == null ? "" : String(isklpDraft.max);
+    }
+
+    function renderVolPanel() {
+      const checks = Array.from(volPanel.querySelectorAll("[data-check]"));
+      for (const el of checks) el.textContent = "";
+      const preset =
+        (volDraft.min == null && volDraft.max == null) ? "any" :
+        (volDraft.max == null && [5, 50, 100].includes(Number(volDraft.min))) ? String(Number(volDraft.min)) :
+        null;
+      if (preset) {
+        const el = volPanel.querySelector(`[data-check="${preset}"]`);
+        if (el) el.textContent = "\u2713";
+      }
+      if (volMinBox) volMinBox.value = volDraft.min == null ? "" : String(volDraft.min);
+      if (volMaxBox) volMaxBox.value = volDraft.max == null ? "" : String(volDraft.max);
+    }
+
+    function openIskLpPanel() {
+      isklpDraft = { ...isklpFilter };
+      renderIskLpPanel();
+      isklpPanel.style.display = "block";
+    }
+    function closeIskLpPanel() {
+      isklpPanel.style.display = "none";
+    }
+    function toggleIskLpPanel() {
+      if (isklpPanel.style.display === "block") closeIskLpPanel();
+      else openIskLpPanel();
+    }
+
+    function openVolPanel() {
+      volDraft = { ...volFilter };
+      renderVolPanel();
+      volPanel.style.display = "block";
+    }
+    function closeVolPanel() {
+      volPanel.style.display = "none";
+    }
+    function toggleVolPanel() {
+      if (volPanel.style.display === "block") closeVolPanel();
+      else openVolPanel();
+    }
+
+    const columnsMgr = window.initColumnManager({
+      table: tableEl,
+      storageKey: "lp_items_cols_v1",
+      button: columnsBtn,
+      columns: [
+        { id: "row", label: "#", group: "Main", locked: true },
+        { id: "item", label: "Item", group: "Main", locked: true },
+        { id: "itemId", label: "Item ID", group: "IDs", defaultVisible: false },
+        { id: "category", label: "Category", group: "Main" },
+        { id: "isklp", label: "ISK/LP", group: "Economy" },
+        { id: "price", label: "Price (Jita)", group: "Economy" },
+        { id: "qty", label: "Q-ty", group: "LP Store", defaultVisible: false },
+        { id: "iskCost", label: "ISK Cost (Store)", group: "LP Store", defaultVisible: false },
+        { id: "otherReq", label: "Other Requirements", group: "LP Store", defaultVisible: false },
+        { id: "otherCost", label: "Other Cost", group: "LP Store", defaultVisible: false },
+        { id: "stores", label: "LP Stores", group: "LP Store" },
+        { id: "volume", label: "Volume (Raw)", group: "Market" },
+        { id: "volumeNorm", label: "Volume (Norm.)", group: "Market" },
+        { id: "lpCapacity", label: "LP Capacity", group: "LP Metrics" },
+        { id: "lpWeight", label: "LP Weight", group: "LP Metrics" },
+        { id: "risk", label: "Risk", group: "Market" },
+      ],
+    });
+
+    function isklpColor(v) {
+      if (v == null || !Number.isFinite(v)) return null;
+      if (v >= 1201) return "#3399FF";
+      if (v >= 951) return "#FFFF66";
+      if (v >= 751) return "#FF8C00";
+      if (v >= 651) return "#FF4D4D";
+      if (v >= 501) return "#C00000";
+      return "#8B0000";
+    }
+
+    function fmt(v, digits=0) {
+      if (v == null || Number.isNaN(v)) return "-";
+      return Number(v).toLocaleString(undefined, { maximumFractionDigits: digits });
+    }
+
+    function fmtMIsk(v) {
+      if (v == null || Number.isNaN(v)) return "-";
+      return (Number(v) / 1_000_000).toLocaleString("ru-RU", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " M";
+    }
+
+    function escHtml(s) {
+      return String(s ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function reqText(req = []) {
+      if (!Array.isArray(req) || !req.length) return "";
+      return req.map(r => `${r.qty}x ${r.name}`).join(", ");
+    }
+
+    function getPeriodFields(item) {
+      const d = Number(periodDays);
+      const volume =
+        d === 1 ? (item.volumePerDay1 ?? item.volumePerDay7 ?? item.volumePerDay14 ?? item.volumePerDay30) :
+        d === 7 ? (item.volumePerDay7 ?? item.volumePerDay14 ?? item.volumePerDay30) :
+        (item.volumePerDay30 ?? item.volumePerDay14 ?? item.volumePerDay7 ?? item.volumePerDay1);
+      const risk = d === 30 ? (item.risk30 || "—") : (item.risk14 || "—");
+      const q = Math.max(1, Number(item.bestQty || 1));
+      const volumeNorm = (volume != null && Number.isFinite(volume)) ? (volume / q) : null;
+      const lpCapacity =
+        d === 1 ? (item.lpCapacity1 ?? item.lpCapacity7 ?? item.lpCapacity30 ?? null) :
+        d === 7 ? (item.lpCapacity7 ?? item.lpCapacity30 ?? item.lpCapacity1 ?? null) :
+        (item.lpCapacity30 ?? item.lpCapacity7 ?? item.lpCapacity1 ?? null);
+      return { volume, volumeNorm, risk, lpCapacity };
+    }
+
+    function buildCategoryOptions() {
+      const cats = Array.from(new Set(items.map(i => i.category).filter(Boolean))).sort();
+      for (const c of cats) {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        catEl.appendChild(opt);
+      }
+    }
+
+    function buildFactionOptions() {
+      if (!factionEl) return;
+      const fset = new Set();
+      for (const it of items) {
+        for (const f of (it.factions || [])) {
+          const s = String(f || "").trim();
+          if (s) fset.add(s);
+        }
+      }
+      const factions = Array.from(fset).sort((a, b) => a.localeCompare(b));
+      for (const f of factions) {
+        const opt = document.createElement("option");
+        opt.value = f;
+        opt.textContent = f;
+        factionEl.appendChild(opt);
+      }
+    }
+
+    function applyFilters() {
+      const q = qEl.value.trim().toLowerCase();
+      const cat = catEl.value;
+      const faction = (factionEl?.value || "").trim();
+      const storesMin = Number(storesMinEl.value || 1);
+      const volMin = volFilter.min == null ? 0 : Number(volFilter.min);
+      const volMax = volFilter.max == null ? null : Number(volFilter.max);
+      const excludeConcord = excludeConcordEl.checked;
+
+      return items.filter(it => {
+        const itemCfg = itemConfig?.items?.[String(it.itemId)];
+        if (itemCfg?.hide) return false;
+        const pf = getPeriodFields(it);
+        const cfg = corpConfig?.corps?.[String(it.uniqueCorpId)];
+        if (it.unique && it.uniqueCorpId != null && cfg?.hide) return false;
+        if (excludeConcord && it.concordOnly) return false;
+        if (q && !String(it.itemName).toLowerCase().includes(q)) return false;
+        if (cat && it.category !== cat) return false;
+        if (faction) {
+          const fs = Array.isArray(it.factions) ? it.factions : [];
+          if (!fs.includes(faction)) return false;
+        }
+        if ((it.lpStores || 0) < storesMin) return false;
+        if (isklpFilter.min != null && (it.medianIskPerLp ?? -Infinity) < Number(isklpFilter.min)) return false;
+        if (isklpFilter.max != null && (it.medianIskPerLp ?? Infinity) > Number(isklpFilter.max)) return false;
+        if ((pf.volume ?? 0) < volMin) return false;
+        if (volMax != null && (pf.volume ?? 0) > volMax) return false;
+        return true;
+      });
+    }
+
+    function sortRows(rows) {
+      const dir = sortState.dir === "asc" ? 1 : -1;
+      const key = sortState.key;
+      return [...rows].sort((a,b)=>{
+        const ap = getPeriodFields(a);
+        const bp = getPeriodFields(b);
+        if (key === "itemId") return ((a.itemId ?? -Infinity) - (b.itemId ?? -Infinity)) * dir;
+        const av =
+          key === "volume" ? ap.volume :
+          key === "volumeNorm" ? ap.volumeNorm :
+          key === "risk" ? ap.risk :
+          key === "lpCapacity" ? ap.lpCapacity :
+          a[key];
+        const bv =
+          key === "volume" ? bp.volume :
+          key === "volumeNorm" ? bp.volumeNorm :
+          key === "risk" ? bp.risk :
+          key === "lpCapacity" ? bp.lpCapacity :
+          b[key];
+        if (typeof av === "string") return String(av).localeCompare(String(bv)) * dir;
+        return ((av ?? -Infinity) - (bv ?? -Infinity)) * dir;
+      });
+    }
+
+    function render() {
+      const filtered = applyFilters();
+      const sorted = sortRows(filtered);
+      countEl.textContent = `Items: ${sorted.length}`;
+      tbody.innerHTML = "";
+      for (let i = 0; i < sorted.length; i++) {
+        const it = sorted[i];
+        const pf = getPeriodFields(it);
+        const tr = document.createElement("tr");
+        const isklpC = isklpColor(it.medianIskPerLp);
+        const req = reqText(it.bestOtherRequirements || []);
+        const reqShort = req.length > 40 ? (req.slice(0, 40) + "…") : req;
+        const lpw = it.lpWeightPct != null ? Number(it.lpWeightPct) : null;
+        const lpwW = lpw == null ? 0 : Math.max(0, Math.min(100, lpw));
+        tr.innerHTML = `
+          <td data-col="row">${i + 1}</td>
+          <td data-col="item" class="sticky-col"><a href="lp_item.html?item=${it.itemId}"><div class="item-cell"><img class="item-icon" src="https://images.evetech.net/types/${it.itemId}/icon?size=32" alt="" loading="lazy" referrerpolicy="no-referrer"><span>${it.itemName}</span></div></a></td>
+          <td data-col="itemId">${it.itemId}</td>
+          <td data-col="category"><span class="label">${it.category || "-"}</span></td>
+          <td data-col="isklp" style="${isklpC ? `color:${isklpC}; font-weight:900;` : ""}">${it.medianIskPerLp != null ? fmt(it.medianIskPerLp, 0) : "-"}</td>
+          <td data-col="price" title="${it.sellPrice != null ? (fmt(it.sellPrice, 0) + ' ISK') : '-'}">${it.sellPrice != null ? fmtMIsk(it.sellPrice) : "-"}</td>
+          <td data-col="qty">${it.bestQty != null ? fmt(it.bestQty, 0) : "-"}</td>
+          <td data-col="iskCost">${it.bestIskCost != null ? fmtMIsk(it.bestIskCost) : "-"}</td>
+          <td data-col="otherReq"><span style="display:inline-block; max-width:28ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escHtml(req)}">${escHtml(reqShort)}</span></td>
+          <td data-col="otherCost">${it.bestOtherCost != null ? fmtMIsk(it.bestOtherCost) : "-"}</td>
+          <td data-col="stores">${fmt(it.lpStores, 0)}</td>
+          <td data-col="volume">${pf.volume != null ? fmt(pf.volume, 2) : "-"}</td>
+          <td data-col="volumeNorm">${pf.volumeNorm != null ? fmt(pf.volumeNorm, 2) : "-"}</td>
+          <td data-col="lpCapacity" title="Estimate of how much LP the market can absorb without price pressure">${pf.lpCapacity != null ? fmt(pf.lpCapacity, 0) : "-"}</td>
+          <td data-col="lpWeight" title="Shows what share of an item's price comes from LP">
+            ${lpw == null ? "-" : `<div class="lpw"><span>${fmt(lpw, 1)}%</span><span class="lpw-bar"><i style="width:${lpwW.toFixed(1)}%"></i></span></div>`}
+          </td>
+          <td data-col="risk">${pf.risk || "-"}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      if (columnsMgr) columnsMgr.apply();
+    }
+
+    async function init() {
+      const [res, cfgRes, itemCfgRes] = await Promise.all([
+        fetch("/json/lp_items.json"),
+        fetch("/config/lp_corps_config.json").catch(() => null),
+        fetch("/config/lp_items_config.json").catch(() => null),
+      ]);
+      const data = await res.json();
+      items = data.items || [];
+      if (cfgRes && cfgRes.ok) {
+        try { corpConfig = await cfgRes.json(); } catch { /* ignore */ }
+      }
+      if (itemCfgRes && itemCfgRes.ok) {
+        try { itemConfig = await itemCfgRes.json(); } catch { /* ignore */ }
+      }
+      // Hide items from config without requiring a rebuild
+      items = items.filter((it) => !itemConfig?.items?.[String(it.itemId)]?.hide);
+      buildCategoryOptions();
+      buildFactionOptions();
+      updateIskLpButton();
+      render();
+    }
+
+    [qEl, catEl, factionEl, storesMinEl, excludeConcordEl].filter(Boolean).forEach(el => {
+      el.addEventListener("input", render);
+      el.addEventListener("change", render);
+    });
+    periodBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        periodBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        periodDays = Number(btn.dataset.period || 7);
+        updateVolButton();
+        render();
+      });
+    });
+
+    // ISK/LP dropdown interactions
+    if (isklpBtn && isklpPanel) {
+      updateIskLpButton();
+      isklpBtn.addEventListener("click", (e) => { e.preventDefault(); toggleIskLpPanel(); });
+      document.addEventListener("click", (e) => {
+        if (!isklpPanel || isklpPanel.style.display !== "block") return;
+        const wrap = document.getElementById("isklpDropdown");
+        if (wrap && !wrap.contains(e.target)) closeIskLpPanel();
+      });
+
+      Array.from(isklpPanel.querySelectorAll(".opt[data-preset]")).forEach((opt) => {
+        opt.addEventListener("click", () => {
+          const p = opt.dataset.preset;
+          if (p === "any") isklpDraft = { min: null, max: null };
+          else isklpDraft = { min: Number(p), max: null };
+          renderIskLpPanel();
+        });
+      });
+
+      isklpResetBtn?.addEventListener("click", () => {
+        isklpDraft = { min: null, max: null };
+        renderIskLpPanel();
+      });
+
+      isklpApplyBtn?.addEventListener("click", () => {
+        const min = isklpMinBox?.value?.trim() ? Number(isklpMinBox.value) : null;
+        const max = isklpMaxBox?.value?.trim() ? Number(isklpMaxBox.value) : null;
+        const clean = {
+          min: (min != null && Number.isFinite(min)) ? min : isklpDraft.min,
+          max: (max != null && Number.isFinite(max)) ? max : isklpDraft.max,
+        };
+        // normalize: if both empty -> Any
+        if ((clean.min == null || !Number.isFinite(clean.min)) && (clean.max == null || !Number.isFinite(clean.max))) {
+          isklpFilter = { min: null, max: null };
+        } else {
+          isklpFilter = {
+            min: (clean.min != null && Number.isFinite(clean.min)) ? clean.min : null,
+            max: (clean.max != null && Number.isFinite(clean.max)) ? clean.max : null,
+          };
+        }
+        saveIskLpFilter(isklpFilter);
+        updateIskLpButton();
+        closeIskLpPanel();
+        render();
+      });
+    }
+
+    // Volume dropdown interactions
+    if (volBtn && volPanel) {
+      updateVolButton();
+      volBtn.addEventListener("click", (e) => { e.preventDefault(); toggleVolPanel(); });
+      document.addEventListener("click", (e) => {
+        if (!volPanel || volPanel.style.display !== "block") return;
+        const wrap = document.getElementById("volDropdown");
+        if (wrap && !wrap.contains(e.target)) closeVolPanel();
+      });
+
+      Array.from(volPanel.querySelectorAll(".opt[data-preset]")).forEach((opt) => {
+        opt.addEventListener("click", () => {
+          const p = opt.dataset.preset;
+          if (p === "any") volDraft = { min: null, max: null };
+          else volDraft = { min: Number(p), max: null };
+          renderVolPanel();
+        });
+      });
+
+      volResetBtn?.addEventListener("click", () => {
+        volDraft = { min: 5, max: null };
+        renderVolPanel();
+      });
+
+      volApplyBtn?.addEventListener("click", () => {
+        const min = volMinBox?.value?.trim() ? Number(volMinBox.value) : null;
+        const max = volMaxBox?.value?.trim() ? Number(volMaxBox.value) : null;
+        const clean = {
+          min: (min != null && Number.isFinite(min)) ? min : volDraft.min,
+          max: (max != null && Number.isFinite(max)) ? max : volDraft.max,
+        };
+        // normalize: if both empty -> Any
+        if ((clean.min == null || !Number.isFinite(clean.min)) && (clean.max == null || !Number.isFinite(clean.max))) {
+          volFilter = { min: null, max: null };
+        } else {
+          volFilter = {
+            min: (clean.min != null && Number.isFinite(clean.min)) ? clean.min : null,
+            max: (clean.max != null && Number.isFinite(clean.max)) ? clean.max : null,
+          };
+        }
+        saveVolFilter(volFilter);
+        updateVolButton();
+        closeVolPanel();
+        render();
+      });
+    }
+    document.querySelectorAll("th.sortable").forEach(th => {
+      th.addEventListener("click", ()=>{
+        const key = th.dataset.sort;
+        if (sortState.key === key) sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+        else { sortState.key = key; sortState.dir = "desc"; }
+        render();
+      });
+    });
+
+    init();
+  </script>
+</body>
+</html>

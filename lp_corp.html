@@ -1,0 +1,1313 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>LP Shop — Corporation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg: #0c1017;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #1f2937;
+      --nav: #1a2535;
+      --nav-top: #40576f;
+    }
+    * { box-sizing: border-box; }
+    body { margin:0; font-family: "Segoe UI", system-ui, -apple-system, sans-serif; background: radial-gradient(120% 120% at 30% 20%, #111827 0%, #0b0f18 50%, #0a0d14 100%); color: var(--text); overflow-y: scroll; }
+    a { color: var(--text); text-decoration: none; }
+    a:hover { color: #93c5fd; }
+
+    .container { max-width:1900px; margin:0 auto; padding:0 20px; }
+    .topbar { background: var(--nav-top); color:#dbeafe; font-size:13px; }
+    .topbar .container { display:flex; justify-content:space-between; padding:6px 0; }
+    .navbar { background: var(--nav); color:#dbeafe; border-bottom:1px solid #223144; }
+    .navbar .container { display:flex; align-items:center; gap:20px; padding:14px 0; }
+    .brand { font-weight:800; font-size:20px; letter-spacing:0.5px; }
+    .nav-links a { margin-right:16px; font-weight:600; }
+    .subnav { background: var(--nav-top); color:#dbeafe; }
+    .subnav .container { padding:10px 0; font-weight:600; display:flex; gap:16px; flex-wrap:wrap; }
+    .subnav a { color:#dbeafe; opacity:0.9; }
+    .subnav a.active { color:#fff; opacity:1; text-decoration: underline; text-underline-offset: 4px; }
+
+    .shell { max-width:1900px; margin:24px auto; padding:0 20px; display:grid; grid-template-columns: 1fr; gap:16px; align-items:start; }
+    .sidebar { display:none; }
+    .main { display:flex; justify-content:center; }
+    .main-inner { width:min(1900px, 100%); }
+    @media (max-width: 1200px) { .shell { grid-template-columns: 1fr; } .main { justify-content:stretch; } .main-inner { width:100%; } }
+
+    .page { display:grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap:16px; }
+    .panel { grid-column: span 12; background: var(--card); border:1px solid var(--border); border-radius:12px; padding:16px; box-shadow:0 10px 40px rgba(0,0,0,0.35); }
+    .panel h1 { margin:0 0 6px 0; font-size:22px; display:flex; align-items:center; gap:10px; }
+    .muted { color: var(--muted); font-size:14px; margin:0; }
+    .pill { display:inline-block; padding:4px 8px; border-radius:999px; background:#1f2937; font-weight:600; font-size:12px; }
+    .tag-cloud { display:inline-flex; gap:8px; flex-wrap:wrap; margin-left:8px; vertical-align:middle; }
+    .pill.tag { border:1px solid var(--border); background: transparent; font-weight:700; padding:2px 6px; }
+    .pill.tag-hs { background: transparent; border-color: rgba(34,197,94,0.55); color: rgba(34,197,94,0.95); }
+    .pill.tag-ls { background: transparent; border-color: rgba(250,204,21,0.45); color: rgba(250,204,21,0.95); }
+    .pill.tag-ns { background: transparent; border-color: rgba(239,68,68,0.45); color: rgba(239,68,68,0.95); }
+    .pill.tag-empire { background: transparent; border-color: rgba(59,130,246,0.45); color: rgba(147,197,253,0.95); }
+    .pill.tag-pirate { background: transparent; border-color: rgba(168,85,247,0.45); color: rgba(216,180,254,0.95); }
+    .pill.tag-l5 { background: transparent; border-color: rgba(249,115,22,0.45); color: rgba(253,186,116,0.95); }
+    .pill.tag-fw { background: transparent; border-color: rgba(168, 85, 247, 0.55); color: rgba(216,180,254,0.95); }
+    .corp-id { color: var(--muted); font-weight:700; font-size:12px; margin-left:10px; }
+    .logo { width:36px; height:36px; border-radius:6px; background:#0f172a; object-fit:contain; vertical-align:middle; }
+
+    .controls { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin:10px 0 0; }
+    .controls-stack { flex-direction:column; align-items:stretch; }
+    .controls-stack .controls-row { display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+    .controls-stack .control-spacer { flex: 1; }
+    .pill.count { border:1px solid var(--border); background:#0f172a; font-weight:900; padding:8px 10px; border-radius:10px; }
+    .controls-stack #lpMax, .controls-stack #sellMin { display:none; }
+    .controls-stack label.check { display:none; }
+    .select { padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:#0f172a; color:var(--text); }
+
+    .kpi { display:flex; gap:12px; flex-wrap:wrap; margin:12px 0 0; }
+    .kpi-item { background:#0f172a; border:1px solid var(--border); border-radius:8px; padding:10px 12px; min-width:200px; }
+    .kpi-label { color: var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:0.5px; }
+    .kpi-value { font-size:18px; font-weight:700; }
+
+    .sidebar h2 { margin:0 0 10px 0; font-size:16px; }
+    .field { margin-bottom:10px; }
+    .field label { display:block; font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .input { width:100%; padding:10px 12px; border-radius:8px; border:1px solid var(--border); background:#0f172a; color:var(--text); }
+    .row { display:flex; gap:10px; }
+    .row .field { flex:1; }
+    .check { display:flex; align-items:center; gap:8px; color:var(--text); font-size:14px; }
+
+    .btn-group { display:flex; gap:8px; flex-wrap:wrap; }
+    .btn { padding:8px 10px; border-radius:8px; border:1px solid var(--border); background:#0f172a; color:var(--text); font-weight:700; cursor:pointer; }
+    .btn.active { outline:2px solid rgba(147,197,253,0.6); border-color:#2b3b53; }
+
+    .action-btn { display:inline-flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; border:1px solid var(--border); background:#0f172a; color:var(--text); font-weight:900; font-size:12px; cursor:pointer; }
+    .action-btn:hover { color:#bfdbfe; }
+    .dropdown { position: relative; display:inline-block; }
+    .dropdown-panel { position:absolute; right:0; top:calc(100% + 8px); width: 260px; background:#111827; border:1px solid var(--border); border-radius:12px; box-shadow:0 20px 60px rgba(0,0,0,.55); padding:10px; display:none; z-index: 60; }
+    .dropdown-panel .opt { display:flex; justify-content:space-between; align-items:center; padding:10px 10px; border-radius:10px; cursor:pointer; font-weight:800; }
+    .dropdown-panel .opt:hover { background: rgba(255,255,255,0.04); }
+    .dropdown-panel .opt .check { color:#93c5fd; font-weight:900; }
+    .dropdown-panel .range { display:flex; gap:10px; margin-top:10px; }
+    .dropdown-panel .range input { width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border); background:#0f172a; color:var(--text); }
+    .dropdown-panel .foot { display:flex; justify-content:space-between; align-items:center; margin-top:10px; }
+    .dropdown-panel .link { appearance:none; border:0; background:transparent; color:#93c5fd; font-weight:900; cursor:pointer; padding:8px 6px; }
+    .dropdown-panel .apply { appearance:none; border:1px solid #1d4ed8; background:#2563eb; color:#fff; border-radius:10px; padding:8px 12px; font-weight:900; cursor:pointer; }
+
+    .table-wrap { overflow-x:auto; overflow-y:visible; max-height:none; }
+    table.data-table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric: tabular-nums; }
+    table.data-table thead th { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color: var(--muted); font-weight:700; padding:10px 8px; background: rgba(15,23,42,0.35); position:sticky; top:0; z-index:3; }
+    table.data-table th, table.data-table td { padding:12px 8px; border-bottom:1px solid rgba(255,255,255,0.06); white-space:nowrap; }
+    table.data-table th.sortable { cursor:pointer; user-select:none; }
+    table.data-table th.sortable:hover { color:#bfdbfe; }
+    table.data-table tbody tr { cursor:pointer; }
+    table.data-table tbody tr:hover td { background: rgba(255,255,255,0.035); }
+    table.data-table td[data-col]:not([data-col="item"]):not([data-col="req"]):not([data-col="risk"]):not([data-col="unique"]) { text-align:right; }
+    table.data-table td[data-col="unique"] { text-align:center; }
+    table.data-table td[data-col="risk"] { text-align:center; }
+    table.data-table .sticky-col { position: sticky; left: 0; background: transparent; z-index:2; }
+    table.data-table thead th.sticky-col { z-index: 4; }
+    table.data-table .key { font-weight:700; color:#93c5fd; }
+
+    .item-cell { display:flex; align-items:center; gap:8px; }
+    .item-icon { width:22px; height:22px; border-radius:4px; background:#0f172a; object-fit:contain; flex:0 0 auto; }
+
+    .req-details { max-width: 28ch; white-space: normal; }
+    .req-details summary { cursor: pointer; }
+    .req-summary-text { display:inline-block; max-width: 28ch; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; vertical-align:bottom; }
+    .req-body { margin-top:8px; color: var(--text); white-space: normal; }
+    .req-body ul { margin:0; padding-left:18px; }
+    .req-body li { margin:2px 0; white-space:normal; }
+
+    /* Agents & LP farming: data-first */
+    #agentsPanel h2 { margin:0 0 16px 0; font-size:22px; font-weight:700; }
+    #agentsPanel .agents-head { display:flex; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:8px; }
+    #agentsPanel .agents-updated { margin-left:auto; font-size:12px; }
+
+    #agentsPanel .seg { display:inline-flex; gap:10px; align-items:center; }
+    #agentsPanel .seg-btn { appearance:none; border:0; background:transparent; color:var(--muted); font-weight:700; padding:8px 10px; border-radius:10px; cursor:pointer; }
+    #agentsPanel .seg-btn:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+    #agentsPanel .seg-btn.active { background:#2563eb; color:#fff; }
+
+    #agentsPanel .agents-stats { display:flex; gap:28px; flex-wrap:wrap; margin:12px 0 18px; }
+    #agentsPanel .stat { min-width: 160px; }
+    #agentsPanel .stat .label { font-size:12px; color: var(--muted); text-transform:uppercase; letter-spacing:.06em; }
+    #agentsPanel .stat .value { font-size:22px; font-weight:700; font-variant-numeric: tabular-nums; margin-top:4px; }
+    #agentsPanel .stat .value.easy { color: rgba(34,197,94,0.95); }
+    #agentsPanel .stat .value.medium { color: rgba(250,204,21,0.95); }
+    #agentsPanel .stat .value.hard { color: rgba(239,68,68,0.95); }
+
+    #agentsPanel .agents-table { width:100%; border-collapse:collapse; margin-top:8px; font-variant-numeric: tabular-nums; }
+    #agentsPanel .agents-table thead th { font-size:12px; color: var(--muted); text-transform:uppercase; letter-spacing:.06em; font-weight:700; padding:10px 8px; background: rgba(15,23,42,0.35); position: sticky; top: 0; z-index: 2; }
+    #agentsPanel .agents-table th, #agentsPanel .agents-table td { border-bottom:1px solid rgba(255,255,255,0.06); padding:10px 8px; }
+    #agentsPanel .agents-table th:first-child, #agentsPanel .agents-table td:first-child { text-align:left; white-space:nowrap; width: 1%; }
+    #agentsPanel .agents-table td { text-align:center; }
+    #agentsPanel .agents-table td.zero { color: rgba(229,231,235,0.55); }
+    #agentsPanel .agents-table td.hm { border-radius:8px; }
+    #agentsPanel .agents-table tfoot td { position: sticky; bottom: 0; background: rgba(17,24,39,0.92); z-index: 1; font-weight:700; }
+    #agentsPanel .agents-table tfoot td { border-top:1px solid rgba(255,255,255,0.08); }
+
+    #agentsPanel .agents-insight { margin-top:18px; display:flex; gap:12px; align-items:flex-start; }
+    #agentsPanel .agents-insight .bar { width:4px; border-radius:4px; margin-top:2px; flex:0 0 auto; }
+    #agentsPanel .agents-insight .title { font-weight:700; margin:0; }
+    #agentsPanel .agents-insight .text { margin:6px 0 0; color: var(--muted); }
+    .chart-wrap { position: relative; height: 260px; background:#0f172a; border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+    .chart-canvas { width: 100%; height: 100%; display:block; }
+    .chart-tooltip { position:absolute; pointer-events:none; background: rgba(17,24,39,0.92); border:1px solid #243244; border-radius:10px; padding:8px 10px; color:var(--text); font-size:12px; min-width:160px; display:none; }
+    .chart-tooltip .muted { color: var(--muted); font-size:11px; }
+    .chg { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .chg-item { background:#0f172a; border:1px solid var(--border); border-radius:10px; padding:6px 10px; min-width:90px; }
+    .chg-label { color: var(--muted); font-size:11px; font-weight:700; }
+    .chg-val { font-weight:900; font-size:12px; margin-top:4px; }
+    .chg-val.up { color: #22c55e; }
+    .chg-val.down { color: #ef4444; }
+
+    @media (max-width: 1100px) {
+      table.data-table th, table.data-table td { padding:8px 6px; font-size:13px; }
+      #agentsPanel .agents-table th, #agentsPanel .agents-table td { padding:8px 6px; font-size:13px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <div>Top Link 1 &nbsp;|&nbsp; Top Link 2</div>
+      <div>Found a bug? Let us know</div>
+    </div>
+  </div>
+  <div class="navbar">
+    <div class="container">
+      <div class="brand">EVE Sheets</div>
+      <div class="nav-links">
+        <a href="index.html">System stats</a>
+        <a href="lp.html" style="color:#93c5fd;">LP Shop</a>
+      </div>
+      <div style="flex:1"></div>
+    </div>
+  </div>
+  <div class="subnav">
+    <div class="container">
+      <a href="lp.html" class="active">Corporations</a>
+      <a href="lp_items.html">Items</a>
+      <span style="opacity:.6">Subnav 3</span>
+      <span style="opacity:.6">Subnav 4</span>
+    </div>
+  </div>
+
+  <div class="shell">
+    <div class="main">
+      <div class="main-inner">
+        <div class="page">
+          <div class="panel">
+            <h1><img id="logo" class="logo" alt="" referrerpolicy="no-referrer"> <span id="corpName">LP corporation</span><span class="corp-id" id="corpIdText"></span></h1>
+            <div class="muted">
+              <span class="pill" id="corpType"></span>
+              <span id="corpTags" class="tag-cloud"></span>
+            </div>
+            <div class="kpi">
+              <div class="kpi-item"><div class="kpi-label">Best ISK/LP</div><div class="kpi-value" id="kpi-best">—</div></div>
+              <div class="kpi-item"><div class="kpi-label">Median ISK/LP</div><div class="kpi-value" id="kpi-median">—</div></div>
+            </div>
+          </div>
+
+          <div class="panel" id="agentsPanel">
+            <h2>Agents &amp; LP Farming</h2>
+            <div class="agents-head">
+              <div class="seg" role="group" aria-label="Space filter">
+                <button class="seg-btn active" data-zone="hs" type="button">HS</button>
+                <button class="seg-btn active" data-zone="ls" type="button">LS</button>
+                <button class="seg-btn active" data-zone="ns" type="button">NS</button>
+              </div>
+              <div class="agents-updated muted" id="agentsUpdated">—</div>
+            </div>
+
+            <div class="agents-stats">
+              <div class="stat"><div class="label">Total agents</div><div class="value" id="agentsTotal">—</div></div>
+              <div class="stat"><div class="label">L4+ security</div><div class="value" id="agentsL4Sec">—</div></div>
+              <div class="stat"><div class="label">LP difficulty</div><div class="value" id="agentsDiff">—</div></div>
+            </div>
+
+            <table class="agents-table">
+              <thead>
+                <tr>
+                  <th>Agent Type</th>
+                  <th>L1</th><th>L2</th><th>L3</th><th>L4</th><th>L5</th>
+                  <th>Total</th>
+                </tr>
+              </thead>
+              <tbody id="agentsBody"></tbody>
+              <tfoot id="agentsFoot"></tfoot>
+            </table>
+
+            <div class="agents-insight" id="agentsPotential">
+              <div class="bar"></div>
+              <div>
+                <div class="title">LP Farming Potential</div>
+                <div class="desc muted">—</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel" id="lpChartPanel">
+            <h1 style="font-size:18px;">LP Value Chart</h1>
+            <div class="controls" style="margin-top:8px;">
+              <div class="btn-group" role="group" aria-label="Chart range">
+                <button class="btn active" data-chart-range="7">7d</button>
+                <button class="btn" data-chart-range="30">30d</button>
+                <button class="btn" data-chart-range="90">90d</button>
+              </div>
+              <div style="flex:1"></div>
+              <div class="muted" id="lpChartMeta">—</div>
+            </div>
+            <div style="margin-top:12px;" class="chart-wrap">
+              <canvas id="lpChart" class="chart-canvas"></canvas>
+              <div id="lpChartTooltip" class="chart-tooltip"></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="controls controls-stack" style="margin:0 0 12px;">
+              <div class="controls-row">
+              <span class="muted">Region pricing:</span>
+              <select class="select" disabled><option>The Forge</option></select>
+              <span class="muted">Period:</span>
+              <select id="period" class="select">
+                <option value="14">14d</option>
+                <option value="30">30d</option>
+              </select>
+              </div>
+              <div class="controls-row">
+              <input id="q" class="input" placeholder="Item name..." style="display:none; min-width:240px;">
+              <select id="cat" class="select" style="min-width:220px;">
+                <option value="">All categories</option>
+              </select>
+              <input id="lpMax" class="input" type="number" min="0" step="1" placeholder="∞" style="width:110px;" title="LP ≤" aria-label="LP maximum">
+              <input id="sellMin" class="input" type="number" min="0" step="1" placeholder="0" style="width:140px;" title="Sell (Jita) &ge;" aria-label="Sell (Jita) minimum">
+              <label class="check"><input id="uniqueOnly" type="checkbox"> Only unique items</label>
+              <div class="control-spacer"></div>
+              <div class="pill count" id="count">Offers: 0</div>
+              <div class="dropdown" id="isklpDropdown">
+                <button class="action-btn" id="isklpBtn" type="button">ISK/LP</button>
+                <div class="dropdown-panel" id="isklpPanel">
+                  <div class="opt" data-preset="any"><span>Any</span><span class="check" data-check="any"></span></div>
+                  <div class="opt" data-preset="1000"><span>&ge; 1000</span><span class="check" data-check="1000"></span></div>
+                  <div class="opt" data-preset="2000"><span>&ge; 2000</span><span class="check" data-check="2000"></span></div>
+                  <div class="opt" data-preset="3000"><span>&ge; 3000</span><span class="check" data-check="3000"></span></div>
+                  <div class="range">
+                    <input id="isklpMinBox" placeholder="Min">
+                    <input id="isklpMaxBox" placeholder="Max">
+                  </div>
+                  <div class="foot">
+                    <button class="link" type="button" id="isklpReset">Reset</button>
+                    <button class="apply" type="button" id="isklpApply">Apply</button>
+                  </div>
+                </div>
+              </div>
+              <div class="dropdown" id="volDropdown">
+                <button class="action-btn" id="volBtn" type="button">Volume (Raw)</button>
+                <div class="dropdown-panel" id="volPanel">
+                  <div class="opt" data-preset="any"><span>Any</span><span class="check" data-check="any"></span></div>
+                  <div class="opt" data-preset="5"><span>&ge; 5</span><span class="check" data-check="5"></span></div>
+                  <div class="opt" data-preset="50"><span>&ge; 50</span><span class="check" data-check="50"></span></div>
+                  <div class="opt" data-preset="100"><span>&ge; 100</span><span class="check" data-check="100"></span></div>
+                  <div class="range">
+                    <input id="volMinBox" placeholder="Min">
+                    <input id="volMaxBox" placeholder="Max">
+                  </div>
+                  <div class="foot">
+                    <button class="link" type="button" id="volReset">Reset</button>
+                    <button class="apply" type="button" id="volApply">Apply</button>
+                  </div>
+                </div>
+              </div>
+              <button class="action-btn" id="columnsBtn" type="button">Columns</button>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th data-col="row">#</th>
+                    <th class="sortable sticky-col" data-sort="itemName" data-col="item">Item</th>
+                    <th class="sortable" data-sort="isUnique" data-col="unique">Unique</th>
+                    <th class="sortable" data-sort="lpCost" data-col="lp">LP</th>
+                    <th class="sortable" data-sort="iskCost" data-col="isk">ISK Cost (Store)</th>
+                    <th class="sortable" data-sort="requiredCost" data-col="reqCost">Other Cost (Jita sell)</th>
+                    <th data-col="req">Other Requirements</th>
+                    <th class="sortable" data-sort="qty" data-col="qty">Qty</th>
+                    <th class="sortable" data-sort="sellPrice" data-col="sell">Jita Sell</th>
+                    <th class="sortable" data-sort="iskPerLp" data-col="isklp">ISK/LP</th>
+                    <th class="sortable" data-sort="volumePerDay" data-col="volume">Volume (Raw)</th>
+                    <th class="sortable" data-sort="volumeNorm" data-col="volumeNorm" title="Volume normalized by LP store quantity">Volume (Norm.)</th>
+                    <th class="sortable" data-sort="lpCapacity" data-col="lpCapacity" title="Estimate of how much LP the market can absorb without price pressure">LP Capacity</th>
+                    <th class="sortable" data-sort="lpWeightPct" data-col="lpWeight" title="Shows what share of an item's price comes from LP">LP Weight</th>
+                    <th class="sortable" data-sort="risk" data-col="risk">Risk</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="columns.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const corpId = params.get("corp");
+
+    const tbody = document.getElementById("tbody");
+    const nameEl = document.getElementById("corpName");
+    const typeEl = document.getElementById("corpType");
+    const tagsEl = document.getElementById("corpTags");
+    const corpIdTextEl = document.getElementById("corpIdText");
+    const logoEl = document.getElementById("logo");
+    const kpiBest = document.getElementById("kpi-best");
+    const kpiMedian = document.getElementById("kpi-median");
+    const countEl = document.getElementById("count");
+    const periodEl = document.getElementById("period");
+
+    const qEl = document.getElementById("q");
+    const catEl = document.getElementById("cat");
+    const isklpBtn = document.getElementById("isklpBtn");
+    const isklpPanel = document.getElementById("isklpPanel");
+    const isklpResetBtn = document.getElementById("isklpReset");
+    const isklpApplyBtn = document.getElementById("isklpApply");
+    const isklpMinBox = document.getElementById("isklpMinBox");
+    const isklpMaxBox = document.getElementById("isklpMaxBox");
+
+    const volBtn = document.getElementById("volBtn");
+    const volPanel = document.getElementById("volPanel");
+    const volResetBtn = document.getElementById("volReset");
+    const volApplyBtn = document.getElementById("volApply");
+    const volMinBox = document.getElementById("volMinBox");
+    const volMaxBox = document.getElementById("volMaxBox");
+    const lpMaxEl = document.getElementById("lpMax");
+    const sellMinEl = document.getElementById("sellMin");
+    const uniqueOnlyEl = document.getElementById("uniqueOnly");
+
+    const agentsUpdatedEl = document.getElementById("agentsUpdated");
+    const agentsTotalEl = document.getElementById("agentsTotal");
+    const agentsL4SecEl = document.getElementById("agentsL4Sec");
+    const agentsDiffEl = document.getElementById("agentsDiff");
+    const agentsBody = document.getElementById("agentsBody");
+    const agentsFoot = document.getElementById("agentsFoot");
+    const agentsPotential = document.getElementById("agentsPotential");
+    const lpChartMeta = document.getElementById("lpChartMeta");
+    const lpChartCanvas = document.getElementById("lpChart");
+    const lpChartTooltip = document.getElementById("lpChartTooltip");
+    const agentsPanel = document.getElementById("agentsPanel");
+    const lpChartPanel = document.getElementById("lpChartPanel");
+
+    // Columns / metrics picker (offers table)
+    const columnsBtn = document.getElementById("columnsBtn");
+    const offersTable = document.querySelector(".table-wrap table");
+    const columnsMgr = window.initColumnManager({
+      table: offersTable,
+      storageKey: "lp_corp_offers_cols_v1",
+      button: columnsBtn,
+      columns: [
+        { id: "row", label: "#", group: "Main", locked: true },
+        { id: "item", label: "Item", group: "Main", locked: true },
+        { id: "lp", label: "LP", group: "LP Store", locked: true },
+        { id: "isk", label: "ISK Cost (Store)", group: "LP Store", locked: true },
+        { id: "reqCost", label: "Other Cost", group: "LP Store", locked: true },
+        { id: "req", label: "Other Requirements", group: "LP Store", locked: true },
+        { id: "qty", label: "Qty", group: "LP Store", locked: true },
+
+        { id: "sell", label: "Jita Sell", group: "Market" },
+        { id: "isklp", label: "ISK/LP", group: "Economy" },
+        { id: "volume", label: "Volume (Raw)", group: "Market" },
+        { id: "risk", label: "Risk", group: "Market" },
+
+        { id: "volumeNorm", label: "Volume (Norm.)", group: "Market" },
+        { id: "lpCapacity", label: "LP Capacity", group: "LP Metrics" },
+        { id: "lpWeight", label: "LP Weight", group: "LP Metrics" },
+        { id: "unique", label: "Unique", group: "Main", defaultVisible: false },
+      ],
+    });
+
+    if (agentsPanel && lpChartPanel && agentsPanel.parentElement) {
+      agentsPanel.parentElement.insertBefore(lpChartPanel, agentsPanel);
+    }
+
+    function isklpColor(v) {
+      if (v == null || !Number.isFinite(v)) return null;
+      if (v >= 1201) return "#3399FF";
+      if (v >= 951) return "#FFFF66";
+      if (v >= 751) return "#FF8C00";
+      if (v >= 651) return "#FF4D4D";
+      if (v >= 501) return "#C00000";
+      return "#8B0000";
+    }
+
+    function setIskLp(el, v) {
+      if (!el) return;
+      if (v == null || !Number.isFinite(v)) {
+        el.textContent = "-";
+        el.style.color = "";
+        return;
+      }
+      el.textContent = Number(v).toFixed(0);
+      const c = isklpColor(v);
+      if (c) {
+        el.style.color = c;
+        el.style.fontWeight = "900";
+      }
+    }
+
+    function inferPirateOrEmpire(label) {
+      const s = String(label || "").toLowerCase();
+      if (!s) return null;
+      const pirateKeys = [
+        "guristas",
+        "sansha",
+        "serpentis",
+        "blood",
+        "angel",
+        "mordu",
+        "thukker",
+        "pirate",
+      ];
+      const empireKeys = [
+        "amarr",
+        "caldari",
+        "gallente",
+        "minmatar",
+        "empire",
+        "state",
+        "federation",
+        "republic",
+      ];
+      if (pirateKeys.some((k) => s.includes(k))) return "Pirate";
+      if (empireKeys.some((k) => s.includes(k))) return "Empire";
+      return "Empire";
+    }
+
+    function countZoneAgents(zoneMatrix) {
+      if (!zoneMatrix || typeof zoneMatrix !== "object") return 0;
+      const totalRow = zoneMatrix.Total;
+      if (totalRow && typeof totalRow.total === "number") return totalRow.total;
+      let sum = 0;
+      for (const row of Object.values(zoneMatrix)) {
+        if (!row || typeof row !== "object") continue;
+        if (typeof row.total === "number") sum += row.total;
+      }
+      return sum;
+    }
+
+    function hasLevel5(agentStats) {
+      const zones = ["hs", "ls", "ns"];
+      for (const z of zones) {
+        const m = agentStats?.byZone?.[z];
+        if (!m) continue;
+        for (const row of Object.values(m)) {
+          if (!row || typeof row !== "object") continue;
+          const v = row[5];
+          if (typeof v === "number" && v > 0) return true;
+        }
+      }
+      return false;
+    }
+
+    function renderTagCloud(corp, agentStats) {
+      if (!tagsEl) return;
+      const tags = [];
+      const typeLabel = corp?.type || corp?.faction || typeEl?.textContent || "";
+      const corpIdNum = Number(corp?.corpId || corpId);
+
+      const pe = inferPirateOrEmpire(typeLabel);
+      if (pe) tags.push({ label: pe, cls: pe === "Pirate" ? "tag tag-pirate" : "tag tag-empire" });
+
+      const fw = new Set([1000179, 1000180, 1000181, 1000182, 1000436, 1000437]);
+      if (fw.has(corpIdNum)) tags.push({ label: "FW", cls: "tag tag-fw" });
+
+      const hsCount = countZoneAgents(agentStats?.byZone?.hs);
+      const lsCount = countZoneAgents(agentStats?.byZone?.ls);
+      const nsCount = countZoneAgents(agentStats?.byZone?.ns);
+      if (hsCount > 0) tags.push({ label: "HS", cls: "tag tag-hs" });
+      if (lsCount > 0) tags.push({ label: "LS", cls: "tag tag-ls" });
+      if (nsCount > 0) tags.push({ label: "NS", cls: "tag tag-ns" });
+
+      if (hasLevel5(agentStats)) tags.push({ label: "LVL 5", cls: "tag tag-l5" });
+
+      tagsEl.innerHTML = tags.map((t) => `<span class="pill ${t.cls}">${t.label}</span>`).join("");
+    }
+
+    // LP chart change widgets (CoinMarketCap style)
+    const lpChartControls = document.querySelector("#lpChartPanel .controls");
+    if (lpChartControls && !document.getElementById("lpchg-7d")) {
+      const wrap = document.createElement("div");
+      wrap.className = "chg";
+      wrap.innerHTML = `
+        <div class="chg-item"><div class="chg-label">7d %</div><div class="chg-val" id="lpchg-7d">—</div></div>
+        <div class="chg-item"><div class="chg-label">30d %</div><div class="chg-val" id="lpchg-30d">—</div></div>
+        <div class="chg-item"><div class="chg-label">90d %</div><div class="chg-val" id="lpchg-90d">—</div></div>
+      `;
+      lpChartControls.insertBefore(wrap, lpChartMeta);
+    }
+    const lpchg7d = document.getElementById("lpchg-7d");
+    const lpchg30d = document.getElementById("lpchg-30d");
+    const lpchg90d = document.getElementById("lpchg-90d");
+
+    let corps = {};
+    let offersByCorp = {};
+    let allOffersForCorp = [];
+    let sortState = { key: "iskPerLp", dir: "desc" };
+    let itemConfig = { items: {} };
+
+    let agentStats = null;
+    let agentZones = new Set(["hs", "ls", "ns"]);
+    let viewRangeDays = 7; // 7 | 30 | 90
+    let fullChartData = [];
+    let chartData = [];
+
+    function fmtNum(v, digits = 0) {
+      if (v == null || Number.isNaN(v)) return "-";
+      return Number(v).toLocaleString(undefined, { maximumFractionDigits: digits, minimumFractionDigits: digits });
+    }
+
+    function fmtPct(p) {
+      if (p == null || !Number.isFinite(p)) return "—";
+      return `${p >= 0 ? "▲" : "▼"} ${Math.abs(p).toFixed(2)}%`;
+    }
+
+    function setPct(el, p) {
+      if (!el) return;
+      el.textContent = fmtPct(p);
+      el.classList.remove("up", "down");
+      if (p == null || !Number.isFinite(p) || p === 0) return;
+      el.classList.add(p >= 0 ? "up" : "down");
+    }
+
+    function isoDayToDate(dayStr) {
+      const [y, m, d] = String(dayStr).split("-").map(Number);
+      return new Date(Date.UTC(y, (m || 1) - 1, d || 1, 0, 0, 0));
+    }
+
+    function addUtcDays(dayStr, deltaDays) {
+      const dt = isoDayToDate(dayStr);
+      dt.setUTCDate(dt.getUTCDate() + deltaDays);
+      return dt.toISOString().slice(0, 10);
+    }
+
+    function calcChangeByDays(series, daysBack) {
+      const points = (series || []).filter(p => p && typeof p.date === "string" && typeof p.value === "number" && Number.isFinite(p.value));
+      if (points.length < 2) return null;
+      const last = points[points.length - 1];
+      const targetDate = addUtcDays(last.date, -daysBack);
+      let prev = null;
+      for (let i = points.length - 1; i >= 0; i--) {
+        if (points[i].date <= targetDate) { prev = points[i]; break; }
+      }
+      if (!prev) prev = points[0];
+      if (!prev || !prev.value) return null;
+      return ((last.value - prev.value) / prev.value) * 100;
+    }
+
+    function reqCell(req = []) {
+      if (!req.length) return "";
+      const shortText = req.map(r => `${r.qty}x ${r.name}`).join(", ");
+      const items = req.map(r => `<li>${r.qty}x ${r.name}</li>`).join("");
+      return `
+        <details class="req-details">
+          <summary><span class="req-summary-text">${shortText}</span></summary>
+          <div class="req-body"><ul>${items}</ul></div>
+        </details>
+      `;
+    }
+
+    function periodFields(o) {
+      const p = Number(periodEl.value);
+      const vol = p === 14 ? (o.volumePerDay14 ?? o.volumePerDay ?? null) : (o.volumePerDay30 ?? o.volumePerDay ?? null);
+      const q = Math.max(1, Number(o.qty || 1));
+      const volNorm = (vol != null && Number.isFinite(vol)) ? (vol / q) : null;
+      const cap =
+        p === 14
+          ? (o.lpCapacity14 ?? o.lpCapacity7 ?? o.lpCapacity30 ?? o.lpCapacity1 ?? null)
+          : (o.lpCapacity30 ?? o.lpCapacity14 ?? o.lpCapacity7 ?? o.lpCapacity1 ?? null);
+      const risk = p === 14 ? (o.risk14 || o.risk || "⚪") : (o.risk30 || o.risk || "⚪");
+      return { vol, volNorm, cap, risk };
+    }
+
+    function buildCategoryOptions(list) {
+      const cats = Array.from(new Set(list.map(o => o.category).filter(Boolean))).sort();
+      catEl.innerHTML = `<option value="">All</option>` + cats.map(c => `<option value="${c}">${c}</option>`).join("");
+    }
+
+    function loadIskLpFilter() {
+      try {
+        const raw = localStorage.getItem("lp_corp_isklp_filter_v1");
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (parsed && (parsed.min != null || parsed.max != null)) return parsed;
+      } catch { /* ignore */ }
+      return { min: null, max: null }; // default Any
+    }
+    function saveIskLpFilter(v) {
+      localStorage.setItem("lp_corp_isklp_filter_v1", JSON.stringify(v));
+    }
+
+    function loadVolFilter() {
+      try {
+        const raw = localStorage.getItem("lp_corp_vol_filter_v1");
+        const parsed = raw ? JSON.parse(raw) : null;
+        if (parsed && (parsed.min != null || parsed.max != null)) return parsed;
+      } catch { /* ignore */ }
+      return { min: 5, max: null }; // default >=5
+    }
+    function saveVolFilter(v) {
+      localStorage.setItem("lp_corp_vol_filter_v1", JSON.stringify(v));
+    }
+
+    let isklpFilter = loadIskLpFilter();
+    let isklpDraft = { ...isklpFilter };
+    let volFilter = loadVolFilter();
+    let volDraft = { ...volFilter };
+
+    function updateIskLpButton() {
+      if (!isklpBtn) return;
+      let label = "ISK/LP";
+      if (isklpFilter.min == null && isklpFilter.max == null) {
+        // Any
+      } else if (isklpFilter.max == null) {
+        label += ` \u2265 ${isklpFilter.min}`;
+      } else {
+        label += ` ${isklpFilter.min ?? ""}-${isklpFilter.max ?? ""}`;
+      }
+      isklpBtn.textContent = label;
+    }
+
+    function updateVolButton() {
+      if (!volBtn) return;
+      const d = Number(periodEl?.value || 14);
+      const suffix = `${d}d`;
+      let label = `Volume (Raw, ${suffix})`;
+      if (volFilter.min == null && volFilter.max == null) {
+        // Any
+      } else if (volFilter.max == null) {
+        label += ` \u2265 ${volFilter.min}`;
+      } else {
+        label += ` ${(volFilter.min ?? "")}-${(volFilter.max ?? "")}`;
+      }
+      volBtn.textContent = label;
+    }
+
+    function renderIskLpPanel() {
+      const checks = Array.from(isklpPanel.querySelectorAll("[data-check]"));
+      for (const el of checks) el.textContent = "";
+      const preset =
+        (isklpDraft.min == null && isklpDraft.max == null) ? "any" :
+        (isklpDraft.max == null && [1000, 2000, 3000].includes(Number(isklpDraft.min))) ? String(Number(isklpDraft.min)) :
+        null;
+      if (preset) {
+        const el = isklpPanel.querySelector(`[data-check="${preset}"]`);
+        if (el) el.textContent = "\u2713";
+      }
+      if (isklpMinBox) isklpMinBox.value = isklpDraft.min == null ? "" : String(isklpDraft.min);
+      if (isklpMaxBox) isklpMaxBox.value = isklpDraft.max == null ? "" : String(isklpDraft.max);
+    }
+
+    function renderVolPanel() {
+      const checks = Array.from(volPanel.querySelectorAll("[data-check]"));
+      for (const el of checks) el.textContent = "";
+      const preset =
+        (volDraft.min == null && volDraft.max == null) ? "any" :
+        (volDraft.max == null && [5, 50, 100].includes(Number(volDraft.min))) ? String(Number(volDraft.min)) :
+        null;
+      if (preset) {
+        const el = volPanel.querySelector(`[data-check="${preset}"]`);
+        if (el) el.textContent = "\u2713";
+      }
+      if (volMinBox) volMinBox.value = volDraft.min == null ? "" : String(volDraft.min);
+      if (volMaxBox) volMaxBox.value = volDraft.max == null ? "" : String(volDraft.max);
+    }
+
+    function openIskLpPanel() {
+      isklpDraft = { ...isklpFilter };
+      renderIskLpPanel();
+      isklpPanel.style.display = "block";
+    }
+    function closeIskLpPanel() {
+      if (isklpPanel) isklpPanel.style.display = "none";
+    }
+    function toggleIskLpPanel() {
+      if (!isklpPanel) return;
+      if (isklpPanel.style.display === "block") closeIskLpPanel();
+      else {
+        closeVolPanel();
+        openIskLpPanel();
+      }
+    }
+
+    function openVolPanel() {
+      volDraft = { ...volFilter };
+      renderVolPanel();
+      volPanel.style.display = "block";
+    }
+    function closeVolPanel() {
+      if (volPanel) volPanel.style.display = "none";
+    }
+    function toggleVolPanel() {
+      if (!volPanel) return;
+      if (volPanel.style.display === "block") closeVolPanel();
+      else {
+        closeIskLpPanel();
+        openVolPanel();
+      }
+    }
+
+    function applyFilters(list) {
+      const q = qEl.value.trim().toLowerCase();
+      const cat = catEl.value;
+      const lpMax = lpMaxEl.value ? Number(lpMaxEl.value) : null;
+      const sellMin = Number(sellMinEl.value || 0);
+      const uniqueOnly = uniqueOnlyEl.checked;
+
+      return list.filter(o => {
+        const itemCfg = itemConfig?.items?.[String(o.itemId)];
+        if (itemCfg?.hide) return false;
+        const pf = periodFields(o);
+        if (q && !String(o.itemName || "").toLowerCase().includes(q)) return false;
+        if (cat && o.category !== cat) return false;
+        if (uniqueOnly && !o.isUnique) return false;
+        if (isklpFilter.min != null && (o.iskPerLp ?? -Infinity) < Number(isklpFilter.min)) return false;
+        if (isklpFilter.max != null && (o.iskPerLp ?? Infinity) > Number(isklpFilter.max)) return false;
+        if (lpMax != null && (o.lpCost ?? 0) > lpMax) return false;
+        if (volFilter.min != null && (pf.vol ?? 0) < Number(volFilter.min)) return false;
+        if (volFilter.max != null && (pf.vol ?? 0) > Number(volFilter.max)) return false;
+        if ((o.sellPrice ?? 0) < sellMin) return false;
+        return true;
+      });
+    }
+
+    function sortRows(list) {
+      const dir = sortState.dir === "asc" ? 1 : -1;
+      const key = sortState.key;
+      return [...list].sort((a,b)=>{
+        if (key === "itemName") return String(a.itemName || "").localeCompare(String(b.itemName || "")) * dir;
+        if (key === "risk") return String(periodFields(a).risk).localeCompare(String(periodFields(b).risk)) * dir;
+        if (key === "volumePerDay") return ((periodFields(a).vol ?? -Infinity) - (periodFields(b).vol ?? -Infinity)) * dir;
+        if (key === "volumeNorm") return ((periodFields(a).volNorm ?? -Infinity) - (periodFields(b).volNorm ?? -Infinity)) * dir;
+        if (key === "lpCapacity") return ((periodFields(a).cap ?? -Infinity) - (periodFields(b).cap ?? -Infinity)) * dir;
+        const av = a[key];
+        const bv = b[key];
+        return ((Number(av ?? -Infinity) - Number(bv ?? -Infinity)) * dir);
+      });
+    }
+
+    function renderOffers() {
+      const filtered = applyFilters(allOffersForCorp);
+      const sorted = sortRows(filtered);
+      countEl.textContent = `Offers: ${sorted.length}`;
+      tbody.innerHTML = "";
+      for (let i = 0; i < sorted.length; i++) {
+        const o = sorted[i];
+        const pf = periodFields(o);
+        const isklpC = isklpColor(o.iskPerLp) || "inherit";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td data-col="row">${i + 1}</td>
+          <td data-col="item" class="sticky-col">
+            <a href="lp_item.html?item=${o.itemId}">
+              <div class="item-cell">
+                <img class="item-icon" src="https://images.evetech.net/types/${o.itemId}/icon?size=32" alt="" loading="lazy" referrerpolicy="no-referrer">
+                <span>${o.itemName}</span>
+              </div>
+            </a>
+          </td>
+          <td data-col="unique">${o.isUnique ? "Yes" : "No"}</td>
+          <td data-col="lp">${fmtNum(o.lpCost, 0)}</td>
+          <td data-col="isk">${fmtNum(o.iskCost, 0)}</td>
+          <td data-col="req">${reqCell(o.requiredItems)}</td>
+          <td data-col="reqCost">${fmtNum(o.requiredCost, 0)}</td>
+          <td data-col="qty">${fmtNum(o.qty, 0)}</td>
+          <td data-col="sell">${fmtNum(o.sellPrice, 0)}</td>
+          <td data-col="isklp">${o.iskPerLp != null ? ('<span style=\"color:' + isklpC + '; font-weight:900;\">' + Number(o.iskPerLp).toFixed(0) + '</span>') : "-"}</td>
+          <td data-col="volume">${pf.vol != null ? Number(pf.vol).toFixed(2) : "-"}</td>
+          <td data-col="volumeNorm">${pf.volNorm != null ? Number(pf.volNorm).toFixed(2) : "-"}</td>
+          <td data-col="lpCapacity" title="Estimate of how much LP the market can absorb without price pressure">${pf.cap != null ? fmtNum(pf.cap, 0) : "-"}</td>
+          <td data-col="lpWeight" title="Shows what share of an item's price comes from LP">${o.lpWeightPct != null ? fmtNum(o.lpWeightPct, 1) + "%" : "-"}</td>
+          <td data-col="risk">${pf.risk}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+      if (columnsMgr) columnsMgr.apply();
+    }
+
+    function renderAgents() {
+      if (!agentStats) {
+        agentsUpdatedEl.textContent = "No data";
+        agentsTotalEl.textContent = "—";
+        agentsL4SecEl.textContent = "—";
+        agentsDiffEl.textContent = "—";
+        agentsDiffEl.classList.remove("easy", "medium", "hard");
+        agentsBody.innerHTML = "";
+        agentsFoot.innerHTML = "";
+        const bar = agentsPotential?.querySelector(".bar");
+        const desc = agentsPotential?.querySelector(".desc");
+        if (bar) bar.style.background = "rgba(255,255,255,0.12)";
+        if (desc) desc.textContent = "—";
+        return;
+      }
+      agentsUpdatedEl.textContent = agentStats.summary.updated ? `Updated: ${agentStats.summary.updated.slice(0,10)}` : "";
+      agentsTotalEl.textContent = String(agentStats.summary.totalAgents ?? 0);
+      agentsL4SecEl.textContent = String(agentStats.summary.l4PlusSecurityAgents ?? 0);
+      agentsDiffEl.textContent = agentStats.summary.lpFarmingDifficulty || "—";
+
+      const orderedZones = ["hs", "ls", "ns"];
+      const selected = orderedZones.filter((z) => agentZones.has(z));
+      const zonesLabel = selected.length ? selected.map((z) => z.toUpperCase()).join("+") : "HS+LS+NS";
+
+      function emptyRow() { return { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, total: 0 }; }
+      function mergeMatrices(zones) {
+        const types = ["Security", "Distribution", "Mining", "R&D", "Locator", "Other", "Total"];
+        const out = {};
+        for (const t of types) out[t] = emptyRow();
+        for (const z of zones) {
+          const m = agentStats.byZone?.[z];
+          if (!m) continue;
+          for (const t of types) {
+            const row = m[t] || emptyRow();
+            out[t][1] += row[1] || 0;
+            out[t][2] += row[2] || 0;
+            out[t][3] += row[3] || 0;
+            out[t][4] += row[4] || 0;
+            out[t][5] += row[5] || 0;
+            out[t].total += row.total || 0;
+          }
+        }
+        return out;
+      }
+
+      const matrix = (selected.length === 3 && agentStats.all) ? agentStats.all : mergeMatrices(selected.length ? selected : orderedZones);
+      const secL4PlusLocal = (matrix.Security?.[4] || 0) + (matrix.Security?.[5] || 0);
+      const totalAgents = selected.length
+        ? selected.reduce((acc, z) => acc + Number(agentStats.summary.zones?.[z] || 0), 0)
+        : Number(agentStats.summary.totalAgents || 0);
+
+      agentsTotalEl.textContent = String(totalAgents);
+      agentsL4SecEl.textContent = String(secL4PlusLocal);
+      const diff = secL4PlusLocal >= 10 ? "Easy" : secL4PlusLocal >= 5 ? "Medium" : "Hard";
+      agentsDiffEl.textContent = diff;
+      agentsDiffEl.classList.remove("easy", "medium", "hard");
+      agentsDiffEl.classList.add(diff.toLowerCase());
+      if (!matrix) {
+        agentsBody.innerHTML = "";
+        agentsFoot.innerHTML = "";
+        const bar = agentsPotential?.querySelector(".bar");
+        const desc = agentsPotential?.querySelector(".desc");
+        if (bar) bar.style.background = "rgba(255,255,255,0.12)";
+        if (desc) desc.textContent = "—";
+        return;
+      }
+      const rows = ["Security", "Distribution", "Mining", "R&D", "Locator"];
+      const max = Math.max(
+        1,
+        ...rows.flatMap(r => [matrix[r]?.[1]||0,matrix[r]?.[2]||0,matrix[r]?.[3]||0,matrix[r]?.[4]||0,matrix[r]?.[5]||0])
+      );
+      function hmTd(v) {
+        const val = Number(v || 0);
+        const td = document.createElement("td");
+        td.textContent = String(val);
+        if (!val) {
+          td.classList.add("zero");
+          return td;
+        }
+        const a = Math.min(0.55, 0.06 + (val / max) * 0.49);
+        td.classList.add("hm");
+        td.style.background = `rgba(59,130,246,${a.toFixed(3)})`;
+        return td;
+      }
+      agentsBody.innerHTML = "";
+      agentsFoot.innerHTML = "";
+      for (const r of rows) {
+        const row = matrix[r] || {1:0,2:0,3:0,4:0,5:0,total:0};
+        const tr = document.createElement("tr");
+        const td0 = document.createElement("td");
+        td0.textContent = r;
+        tr.appendChild(td0);
+        tr.appendChild(hmTd(row[1]));
+        tr.appendChild(hmTd(row[2]));
+        tr.appendChild(hmTd(row[3]));
+        tr.appendChild(hmTd(row[4]));
+        tr.appendChild(hmTd(row[5]));
+        const tdT = document.createElement("td");
+        tdT.textContent = String(row.total || 0);
+        tdT.style.fontWeight = "700";
+        tr.appendChild(tdT);
+        agentsBody.appendChild(tr);
+      }
+      const t = matrix.Total || {1:0,2:0,3:0,4:0,5:0,total:0};
+      const trT = document.createElement("tr");
+      const tdLabel = document.createElement("td");
+      tdLabel.textContent = "Total";
+      tdLabel.style.fontWeight = "700";
+      trT.appendChild(tdLabel);
+      for (const lvl of [1, 2, 3, 4, 5]) {
+        const td = document.createElement("td");
+        const v = Number(t[lvl] || 0);
+        td.textContent = String(v);
+        if (!v) td.classList.add("zero");
+        td.style.fontWeight = "700";
+        trT.appendChild(td);
+      }
+      const tdTotal = document.createElement("td");
+      tdTotal.textContent = String(t.total || 0);
+      tdTotal.style.fontWeight = "700";
+      trT.appendChild(tdTotal);
+      agentsFoot.appendChild(trT);
+
+      const secL4Plus = (matrix.Security?.[4] || 0) + (matrix.Security?.[5] || 0);
+      const pot = secL4Plus >= 6 ? "High" : secL4Plus >= 3 ? "Medium" : "Low";
+      const bar = agentsPotential?.querySelector(".bar");
+      const desc = agentsPotential?.querySelector(".desc");
+      if (bar) {
+        bar.style.background =
+          pot === "High" ? "rgba(34,197,94,0.95)" :
+          pot === "Medium" ? "rgba(250,204,21,0.95)" :
+          "rgba(239,68,68,0.95)";
+      }
+      if (desc) desc.textContent = `Potential: ${pot}. Security L4+ agents: ${secL4Plus} (${zonesLabel}).`;
+    }
+
+    function resizeCanvas(canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      const w = Math.max(300, Math.floor(rect.width));
+      const h = Math.max(180, Math.floor(rect.height));
+      canvas.width = Math.floor(w * dpr);
+      canvas.height = Math.floor(h * dpr);
+      const ctx = canvas.getContext("2d");
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return { w, h, ctx };
+    }
+
+    function drawChart() {
+      const { w, h, ctx } = resizeCanvas(lpChartCanvas);
+      ctx.clearRect(0, 0, w, h);
+
+      const padding = { l: 52, r: 18, t: 18, b: 28 };
+      const innerW = w - padding.l - padding.r;
+      const innerH = h - padding.t - padding.b;
+
+      const points = chartData.filter(p => typeof p.value === "number" && Number.isFinite(p.value));
+      if (!points.length) {
+        ctx.fillStyle = "rgba(156,163,175,0.9)";
+        ctx.font = "14px Segoe UI, system-ui";
+        ctx.fillText("No chart data", padding.l, padding.t + 18);
+        return;
+      }
+
+      const values = points.map(p => p.value);
+      let min = Math.min(...values);
+      let max = Math.max(...values);
+      if (min === max) { min -= 1; max += 1; }
+      const pad = (max - min) * 0.08;
+      min -= pad; max += pad;
+
+      const xFor = (i) => padding.l + (i / Math.max(1, points.length - 1)) * innerW;
+      const yFor = (v) => padding.t + (1 - (v - min) / (max - min)) * innerH;
+
+      // grid + y labels
+      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.lineWidth = 1;
+      ctx.font = "12px Segoe UI, system-ui";
+      ctx.fillStyle = "rgba(156,163,175,0.9)";
+      const ticks = 5;
+      for (let i = 0; i <= ticks; i++) {
+        const y = padding.t + (i / ticks) * innerH;
+        ctx.beginPath();
+        ctx.moveTo(padding.l, y);
+        ctx.lineTo(w - padding.r, y);
+        ctx.stroke();
+        const val = (max - (i / ticks) * (max - min));
+        ctx.fillText(val.toFixed(0), 8, y + 4);
+      }
+
+      // x labels (first/last)
+      const first = points[0].date;
+      const last = points[points.length - 1].date;
+      ctx.fillText(first, padding.l, h - 10);
+      const tw = ctx.measureText(last).width;
+      ctx.fillText(last, w - padding.r - tw, h - 10);
+
+      const up = points[points.length - 1].value >= points[0].value;
+      const lineColor = up ? "#22c55e" : "#ef4444";
+      const fillColor = up ? "rgba(34,197,94,0.18)" : "rgba(239,68,68,0.18)";
+
+      // area
+      ctx.beginPath();
+      ctx.moveTo(xFor(0), yFor(points[0].value));
+      for (let i = 1; i < points.length; i++) ctx.lineTo(xFor(i), yFor(points[i].value));
+      ctx.lineTo(xFor(points.length - 1), padding.t + innerH);
+      ctx.lineTo(xFor(0), padding.t + innerH);
+      ctx.closePath();
+      ctx.fillStyle = fillColor;
+      ctx.fill();
+
+      // line
+      ctx.beginPath();
+      ctx.moveTo(xFor(0), yFor(points[0].value));
+      for (let i = 1; i < points.length; i++) ctx.lineTo(xFor(i), yFor(points[i].value));
+      ctx.strokeStyle = lineColor;
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // current marker
+      const lx = xFor(points.length - 1);
+      const ly = yFor(points[points.length - 1].value);
+      ctx.fillStyle = lineColor;
+      ctx.beginPath();
+      ctx.arc(lx, ly, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function attachTooltip() {
+      lpChartCanvas.addEventListener("mousemove", (e) => {
+        const rect = lpChartCanvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        const points = chartData.filter(p => typeof p.value === "number" && Number.isFinite(p.value));
+        if (!points.length) return;
+        const idx = Math.round((x / rect.width) * (points.length - 1));
+        const i = Math.max(0, Math.min(points.length - 1, idx));
+        const p = points[i];
+        const prev = points[i - 1];
+        const change = prev ? ((p.value - prev.value) / prev.value) * 100 : null;
+        lpChartTooltip.innerHTML = `
+          <div class="muted">${p.date}</div>
+          <div><b>${p.value.toFixed(0)}</b> ISK/LP</div>
+          <div class="muted">${change == null || !Number.isFinite(change) ? "" : (change >= 0 ? "+" : "") + change.toFixed(2) + "% vs prev"}</div>
+        `;
+        lpChartTooltip.style.left = Math.min(rect.width - 170, Math.max(10, x + 12)) + "px";
+        lpChartTooltip.style.top = Math.max(10, y + 12) + "px";
+        lpChartTooltip.style.display = "block";
+      });
+      lpChartCanvas.addEventListener("mouseleave", () => {
+        lpChartTooltip.style.display = "none";
+      });
+    }
+
+    async function loadChart() {
+      lpChartMeta.textContent = "Loading...";
+      try {
+        const staticUrl = `/json/lp_corp_index/10000002/${encodeURIComponent(corpId)}_90_25.json`;
+        let r = await fetch(staticUrl);
+        if (!r.ok) {
+          const apiUrl = `/api/lp_corp_index?corp=${encodeURIComponent(corpId)}&region=10000002&days=90`;
+          r = await fetch(apiUrl);
+        }
+        const data = await r.json();
+        chartData = data.series || [];
+        lpChartMeta.textContent = `Basket: ${data.meta?.basketSize || 0} • Coverage: ${Math.round(((chartData.at(-1)?.coverage) || 0) * 100)}%`;
+        fullChartData = chartData;
+        chartData = fullChartData.slice(-viewRangeDays);
+        const lastCoverage = fullChartData.length ? (fullChartData.at(-1)?.coverage || 0) : 0;
+        lpChartMeta.textContent = `Basket: ${data.meta?.basketSize || 0} • Coverage: ${Math.round(lastCoverage * 100)}%`;
+        setPct(lpchg7d, calcChangeByDays(fullChartData, 7));
+        setPct(lpchg30d, calcChangeByDays(fullChartData, 30));
+        setPct(lpchg90d, calcChangeByDays(fullChartData, 90));
+      } catch {
+        chartData = [];
+        fullChartData = [];
+        setPct(lpchg7d, null);
+        setPct(lpchg30d, null);
+        setPct(lpchg90d, null);
+        lpChartMeta.textContent = "Failed to load";
+      }
+      drawChart();
+    }
+
+    async function init() {
+      const [cRes, oRes, aRes, itemCfgRes] = await Promise.all([
+        fetch("/json/lp_corps.json"),
+        fetch("/json/lp_offers.json"),
+        fetch("/json/lp_corp_agents.json").catch(() => null),
+        fetch("/config/lp_items_config.json").catch(() => null),
+      ]);
+      const corpData = await cRes.json();
+      for (const c of corpData.corps || []) corps[c.corpId] = c;
+      offersByCorp = await oRes.json();
+      if (itemCfgRes && itemCfgRes.ok) {
+        try { itemConfig = await itemCfgRes.json(); } catch { /* ignore */ }
+      }
+
+      const corp = corps[corpId];
+      if (corp) {
+        nameEl.textContent = corp.name;
+        typeEl.textContent = corp.type || corp.faction || "";
+        logoEl.src = `https://images.evetech.net/corporations/${corp.logoId}/logo?size=64`;
+        logoEl.alt = corp.name;
+        setIskLp(kpiBest, corp.bestIskPerLp);
+        setIskLp(kpiMedian, corp.medianIskPerLp);
+      }
+      if (corpIdTextEl) corpIdTextEl.textContent = corpId ? `ID: ${corpId}` : "";
+      renderTagCloud(corp, null);
+
+      allOffersForCorp = offersByCorp[corpId] || [];
+
+      // Recalculate KPIs with item hide-config applied (so hidden items don't affect metrics)
+      (function recalcKpisFromOffers() {
+        const visible = (allOffersForCorp || []).filter((o) => !itemConfig?.items?.[String(o.itemId)]?.hide);
+        const vals = visible
+          .map((o) => o.iskPerLp)
+          .filter((v) => typeof v === "number" && Number.isFinite(v));
+        if (!vals.length) {
+          setIskLp(kpiBest, null);
+          setIskLp(kpiMedian, null);
+          return;
+        }
+        const best = Math.max(...vals);
+        const sorted = [...vals].sort((a, b) => a - b);
+        const mid = Math.floor(sorted.length / 2);
+        const med = sorted.length % 2 === 0 ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid];
+        setIskLp(kpiBest, best);
+        setIskLp(kpiMedian, med);
+      })();
+
+      buildCategoryOptions(allOffersForCorp);
+      renderOffers();
+
+      if (aRes && aRes.ok) {
+        const data = await aRes.json();
+        agentStats = data?.corps?.[corpId] || null;
+      }
+      renderAgents();
+      renderTagCloud(corp, agentStats);
+
+      await loadChart();
+    }
+
+    updateIskLpButton();
+    updateVolButton();
+
+    if (isklpBtn && isklpPanel) {
+      isklpBtn.addEventListener("click", (e) => { e.preventDefault(); toggleIskLpPanel(); });
+      document.addEventListener("click", (e) => {
+        if (!isklpPanel || isklpPanel.style.display !== "block") return;
+        const wrap = document.getElementById("isklpDropdown");
+        if (wrap && wrap.contains(e.target)) return;
+        closeIskLpPanel();
+      });
+      Array.from(isklpPanel.querySelectorAll(".opt[data-preset]")).forEach((opt) => {
+        opt.addEventListener("click", () => {
+          const p = opt.getAttribute("data-preset");
+          if (p === "any") isklpDraft = { min: null, max: null };
+          else isklpDraft = { min: Number(p), max: null };
+          renderIskLpPanel();
+        });
+      });
+      isklpResetBtn?.addEventListener("click", () => {
+        isklpDraft = { min: null, max: null };
+        renderIskLpPanel();
+      });
+      isklpApplyBtn?.addEventListener("click", () => {
+        const min = isklpMinBox?.value?.trim() ? Number(isklpMinBox.value) : null;
+        const max = isklpMaxBox?.value?.trim() ? Number(isklpMaxBox.value) : null;
+        const merged = {
+          min: (min != null && Number.isFinite(min)) ? min : isklpDraft.min,
+          max: (max != null && Number.isFinite(max)) ? max : isklpDraft.max,
+        };
+        if (merged.min != null && merged.max != null && merged.min > merged.max) {
+          isklpFilter = { min: null, max: null };
+        } else {
+          isklpFilter = merged;
+        }
+        saveIskLpFilter(isklpFilter);
+        updateIskLpButton();
+        closeIskLpPanel();
+        renderOffers();
+      });
+    }
+
+    if (volBtn && volPanel) {
+      volBtn.addEventListener("click", (e) => { e.preventDefault(); toggleVolPanel(); });
+      document.addEventListener("click", (e) => {
+        if (!volPanel || volPanel.style.display !== "block") return;
+        const wrap = document.getElementById("volDropdown");
+        if (wrap && wrap.contains(e.target)) return;
+        closeVolPanel();
+      });
+      Array.from(volPanel.querySelectorAll(".opt[data-preset]")).forEach((opt) => {
+        opt.addEventListener("click", () => {
+          const p = opt.getAttribute("data-preset");
+          if (p === "any") volDraft = { min: null, max: null };
+          else volDraft = { min: Number(p), max: null };
+          renderVolPanel();
+        });
+      });
+      volResetBtn?.addEventListener("click", () => {
+        volDraft = { min: 5, max: null };
+        renderVolPanel();
+      });
+      volApplyBtn?.addEventListener("click", () => {
+        const min = volMinBox?.value?.trim() ? Number(volMinBox.value) : null;
+        const max = volMaxBox?.value?.trim() ? Number(volMaxBox.value) : null;
+        const merged = {
+          min: (min != null && Number.isFinite(min)) ? min : volDraft.min,
+          max: (max != null && Number.isFinite(max)) ? max : volDraft.max,
+        };
+        if (merged.min != null && merged.max != null && merged.min > merged.max) {
+          volFilter = { min: 5, max: null };
+        } else {
+          volFilter = merged;
+        }
+        saveVolFilter(volFilter);
+        updateVolButton();
+        closeVolPanel();
+        renderOffers();
+      });
+    }
+
+    [qEl, catEl, lpMaxEl, sellMinEl, uniqueOnlyEl].forEach(el => {
+      el.addEventListener("input", renderOffers);
+      el.addEventListener("change", renderOffers);
+    });
+    periodEl.addEventListener("change", () => {
+      updateVolButton();
+      renderOffers();
+    });
+    document.querySelectorAll("th.sortable").forEach(th=>{
+      th.addEventListener("click", ()=>{
+        const key = th.dataset.sort;
+        if (sortState.key === key) sortState.dir = sortState.dir === "asc" ? "desc" : "asc";
+        else { sortState.key = key; sortState.dir = "desc"; }
+        renderOffers();
+      });
+    });
+    agentZones = new Set(Array.from(document.querySelectorAll("#agentsPanel .seg-btn[data-zone].active")).map(b => b.dataset.zone));
+    if (!agentZones.size) agentZones = new Set(["hs", "ls", "ns"]);
+    document.querySelectorAll("#agentsPanel .seg-btn[data-zone]").forEach(btn => {
+      btn.addEventListener("click", ()=>{
+        const z = btn.dataset.zone;
+        if (!z) return;
+        if (agentZones.has(z)) {
+          if (agentZones.size === 1) return;
+          agentZones.delete(z);
+          btn.classList.remove("active");
+        } else {
+          agentZones.add(z);
+          btn.classList.add("active");
+        }
+        renderAgents();
+      });
+    });
+
+    document.querySelectorAll("#lpChartPanel .btn[data-chart-range]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("#lpChartPanel .btn[data-chart-range]").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        viewRangeDays = Number(btn.dataset.chartRange || 7);
+        chartData = fullChartData.slice(-viewRangeDays);
+        drawChart();
+      });
+    });
+
+    window.addEventListener("resize", () => drawChart());
+    attachTooltip();
+
+    init();
+  </script>
+</body>
+</html>
