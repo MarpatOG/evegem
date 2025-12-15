@@ -1,0 +1,13 @@
+node_modules/
+
+# Local caches / generated data
+cache/
+
+# Local SDE dumps
+SDE/
+
+# Editor/OS
+.vscode/
+*.log
+.DS_Store
+Thumbs.db

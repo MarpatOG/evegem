@@ -1,0 +1,12 @@
+{
+  "systems_staticdata": false,
+  "stargates": false,
+  "stars_effects": false,
+  "asteroid_belts": false,
+  "regions": false,
+  "constellations": false,
+  "planets_moons": false,
+
+  "zkb_system_stats": true,
+  "zkb_region_stats": true
+}
