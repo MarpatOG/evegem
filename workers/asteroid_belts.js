@@ -5,13 +5,27 @@ import path from "node:path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const SYSTEMS_FILE = path.join(__dirname, "..", "cache", "json", "systems_staticdata.json");
+const SYSTEMS_FILE = path.join(__dirname, "..", "cache", "json", "systems.json");
 const OUT_FILE = path.join(__dirname, "..", "cache", "json", "asteroid_belts.json");
 
 const CACHE_DIR = path.join(__dirname, "..", "cache", "belts");
 await mkdir(CACHE_DIR, { recursive: true });
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+let canWriteProgress = true;
+function writeProgress(text) {
+    if (!canWriteProgress) return;
+    try {
+        process.stdout.write(text);
+    } catch (err) {
+        if (err && err.code === "EPIPE") {
+            canWriteProgress = false;
+            return;
+        }
+        throw err;
+    }
+}
 
 async function fileExists(f) {
     try { await access(f); return true; }
@@ -72,7 +86,7 @@ async function loadBelt(id) {
 }
 
 async function runAsteroidBelts() {
-    console.log("📘 Loading systems_staticdata.json...");
+    console.log("📘 Loading systems.json...");
     const systems = JSON.parse(await readFile(SYSTEMS_FILE, "utf8"));
 
     // ⭐ Правильный способ: пройтись по планетам
@@ -89,7 +103,7 @@ async function runAsteroidBelts() {
     console.log(`🔍 Total belts found: ${beltIds.length}`);
 
     if (beltIds.length === 0) {
-        console.log("⚠️ Belt count is zero. Check systems_staticdata.json");
+        console.log("⚠️ Belt count is zero. Check systems.json");
         return;
     }
 
@@ -99,7 +113,7 @@ async function runAsteroidBelts() {
     for (const id of beltIds) {
         i++;
         const pct = ((i / beltIds.length) * 100).toFixed(1);
-        process.stdout.write(`\r⛏ ${i}/${beltIds.length} (${pct}%)`);
+        writeProgress(`\r⛏ ${i}/${beltIds.length} (${pct}%)`);
 
         const data = await loadBelt(id);
         if (data) results[id] = data;
@@ -107,7 +121,8 @@ async function runAsteroidBelts() {
         await sleep(60);
     }
 
-    console.log("\n💾 Saving asteroid_belts.json...");
+    if (canWriteProgress) process.stdout.write("\n");
+    console.log("💾 Saving asteroid_belts.json...");
     await writeFile(OUT_FILE, JSON.stringify(results, null, 2));
 
     console.log("🎉 Belts ETL complete!");

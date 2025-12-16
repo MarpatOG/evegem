@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Пути
-const configPath = join(__dirname, "../Config/ws_config.json");
+const configPath = join(__dirname, "../config/ws_config.json");
 const systemMapPath = join(__dirname, "../cache/json/zkb_systems.json");
 const feedOutputPath = join(__dirname, "../cache/json/kill_feed_test.json");
 

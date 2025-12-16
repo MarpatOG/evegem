@@ -5,7 +5,7 @@
   "type": "module",
   "main": "worker_runner.js",
   "scripts": {
-    "build": "npm run run-all",
+    "build": "node -e \"console.log('No build step for static deployment (workers run locally).')\"",
     "systems": "node workers/systems_staticdata.js",
     "regions": "node workers/region.js",
     "constellations": "node workers/constellations.js",
@@ -25,6 +25,7 @@
     "lp-market": "node workers/lp_fetch_market.js",
     "lp-items": "node workers/lp_build_items_index.js",
     "lp-agents": "node workers/lp_build_corp_agents.js",
+    "esi-all": "node workers/esi_run_all.js",
     "pages-market-history": "node workers/pages_export_market_history.js",
     "pages-corp-index": "node workers/pages_build_lp_corp_index.js",
     "run-all": "node worker_runner.js",

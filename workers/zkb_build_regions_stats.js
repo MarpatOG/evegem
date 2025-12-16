@@ -8,7 +8,7 @@ import { dirname, join } from "path";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const CONFIG_PATH  = join(__dirname, "../Config/ws_config.json");
+const CONFIG_PATH  = join(__dirname, "../config/ws_config.json");
 const OUTPUT_FILE  = join(__dirname, "../cache/json/regions_stats.json");
 const SYSTEMS      = JSON.parse(fs.readFileSync(join(__dirname, "../cache/json/systems.json")));
 const CONSTELLATIONS = JSON.parse(fs.readFileSync(join(__dirname, "../cache/json/constellations.json")));
