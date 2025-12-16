@@ -14,6 +14,11 @@ If you change a dataset shape or meaning, update this file.
 
 Used for market pricing / liquidity and charts.
 
+Worker entrypoints:
+- `npm run esi-all` — runs all ESI data pulls sequentially (Universe + LP offers + Market orders/history).
+- `npm run lp-esi` — pulls LP offers per corporation from ESI.
+- `npm run lp-market` — pulls market orders + history for LP-related types.
+
 - `GET /markets/{region_id}/orders/`
   - used for: buy-order snapshot (`/api/buy_orders`)
   - cache: in-memory TTL 5 minutes + on-disk snapshot in `cache/`

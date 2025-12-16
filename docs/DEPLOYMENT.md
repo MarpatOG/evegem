@@ -5,6 +5,10 @@
 ## Важное ограничение GitHub Pages
 GitHub Pages не запускает Node/Express, поэтому **любой доступ к `/api/*` на Pages не работает**.
 
+Также важно: Pages обычно публикует сайт не в корне домена, а по пути вида `https://{user}.github.io/{repo}/`.
+Поэтому фронт **не должен** делать запросы к абсолютным путям вида `/json/...` и `/config/...` — это будет уходить на корень домена и давать 404.
+Используем относительные URL (`json/...`, `config/...`) или `new URL("json/...", location.href)`.
+
 На текущем фронте есть зависимости от `/api/*`:
 - `frontend/lp_item.html`
   - `/api/buy_orders` (Instant Sell / buy orders snapshot)

@@ -288,7 +288,8 @@
 
     async function init() {
       try {
-        const { nodes, edges } = await loadJSON("/json/map_data.json");
+        const baseUrl = new URL(".", window.location.href);
+        const { nodes, edges } = await loadJSON(new URL("json/map_data.json", baseUrl).toString());
         dataNodes = nodes || [];
         dataEdges = edges || [];
         populateRegions(dataNodes);

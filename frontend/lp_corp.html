@@ -94,16 +94,20 @@
     .dropdown-panel .apply { appearance:none; border:1px solid #1d4ed8; background:#2563eb; color:#fff; border-radius:10px; padding:8px 12px; font-weight:900; cursor:pointer; }
 
     .table-wrap { overflow-x:auto; overflow-y:visible; max-height:none; }
-    table.data-table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric: tabular-nums; }
+    table.data-table { width:100%; border-collapse:separate; border-spacing:0; font-size:14px; font-variant-numeric: tabular-nums; }
     table.data-table thead th { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color: var(--muted); font-weight:700; padding:10px 8px; background: rgba(15,23,42,0.35); position:sticky; top:0; z-index:3; }
     table.data-table th, table.data-table td { padding:12px 8px; border-bottom:1px solid rgba(255,255,255,0.06); white-space:nowrap; }
     table.data-table th.sortable { cursor:pointer; user-select:none; }
     table.data-table th.sortable:hover { color:#bfdbfe; }
     table.data-table tbody tr { cursor:pointer; }
     table.data-table tbody tr:hover td { background: rgba(255,255,255,0.035); }
-    table.data-table td[data-col]:not([data-col="item"]):not([data-col="req"]):not([data-col="risk"]):not([data-col="unique"]) { text-align:right; }
-    table.data-table td[data-col="unique"] { text-align:center; }
-    table.data-table td[data-col="risk"] { text-align:center; }
+    table.data-table th, table.data-table td { text-align:left !important; }
+    table.data-table thead th[data-col]:not([data-col="item"]):not([data-col="req"]):not([data-col="risk"]):not([data-col="unique"]) { text-align:right !important; }
+    table.data-table thead th[data-col="unique"] { text-align:center !important; }
+    table.data-table thead th[data-col="risk"] { text-align:center !important; }
+    table.data-table td[data-col]:not([data-col="item"]):not([data-col="req"]):not([data-col="risk"]):not([data-col="unique"]) { text-align:right !important; }
+    table.data-table td[data-col="unique"] { text-align:center !important; }
+    table.data-table td[data-col="risk"] { text-align:center !important; }
     table.data-table .sticky-col { position: sticky; left: 0; background: transparent; z-index:2; }
     table.data-table thead th.sticky-col { z-index: 4; }
     table.data-table .key { font-weight:700; color:#93c5fd; }
@@ -136,7 +140,7 @@
     #agentsPanel .stat .value.medium { color: rgba(250,204,21,0.95); }
     #agentsPanel .stat .value.hard { color: rgba(239,68,68,0.95); }
 
-    #agentsPanel .agents-table { width:100%; border-collapse:collapse; margin-top:8px; font-variant-numeric: tabular-nums; }
+    #agentsPanel .agents-table { width:100%; border-collapse:separate; border-spacing:0; margin-top:8px; font-variant-numeric: tabular-nums; }
     #agentsPanel .agents-table thead th { font-size:12px; color: var(--muted); text-transform:uppercase; letter-spacing:.06em; font-weight:700; padding:10px 8px; background: rgba(15,23,42,0.35); position: sticky; top: 0; z-index: 2; }
     #agentsPanel .agents-table th, #agentsPanel .agents-table td { border-bottom:1px solid rgba(255,255,255,0.06); padding:10px 8px; }
     #agentsPanel .agents-table th:first-child, #agentsPanel .agents-table td:first-child { text-align:left; white-space:nowrap; width: 1%; }
@@ -1092,10 +1096,11 @@
     async function loadChart() {
       lpChartMeta.textContent = "Loading...";
       try {
-        const staticUrl = `/json/lp_corp_index/10000002/${encodeURIComponent(corpId)}_90_25.json`;
+        const baseUrl = new URL(".", window.location.href);
+        const staticUrl = new URL(`json/lp_corp_index/10000002/${encodeURIComponent(corpId)}_90_25.json`, baseUrl);
         let r = await fetch(staticUrl);
         if (!r.ok) {
-          const apiUrl = `/api/lp_corp_index?corp=${encodeURIComponent(corpId)}&region=10000002&days=90`;
+          const apiUrl = new URL(`api/lp_corp_index?corp=${encodeURIComponent(corpId)}&region=10000002&days=90`, baseUrl);
           r = await fetch(apiUrl);
         }
         const data = await r.json();
@@ -1120,11 +1125,12 @@
     }
 
     async function init() {
+      const baseUrl = new URL(".", window.location.href);
       const [cRes, oRes, aRes, itemCfgRes] = await Promise.all([
-        fetch("/json/lp_corps.json"),
-        fetch("/json/lp_offers.json"),
-        fetch("/json/lp_corp_agents.json").catch(() => null),
-        fetch("/config/lp_items_config.json").catch(() => null),
+        fetch(new URL("json/lp_corps.json", baseUrl)),
+        fetch(new URL("json/lp_offers.json", baseUrl)),
+        fetch(new URL("json/lp_corp_agents.json", baseUrl)).catch(() => null),
+        fetch(new URL("config/lp_items_config.json", baseUrl)).catch(() => null),
       ]);
       const corpData = await cRes.json();
       for (const c of corpData.corps || []) corps[c.corpId] = c;

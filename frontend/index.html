@@ -307,7 +307,8 @@
 
     async function loadAndRender() {
       try {
-        const { systems } = await loadJSON("/json/system_table.json", "system table");
+        const baseUrl = new URL(".", window.location.href);
+        const { systems } = await loadJSON(new URL("json/system_table.json", baseUrl).toString(), "system table");
         cachedRows = systems || [];
         rerender();
 

@@ -68,15 +68,18 @@
     .check { display:flex; align-items:center; gap:8px; color:var(--text); font-size:14px; }
 
     .table-wrap { overflow-x:auto; overflow-y:visible; max-height:none; }
-    table.data-table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric: tabular-nums; }
+    table.data-table { width:100%; border-collapse:separate; border-spacing:0; font-size:14px; font-variant-numeric: tabular-nums; }
     table.data-table thead th { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color: var(--muted); font-weight:700; padding:10px 8px; background: rgba(15,23,42,0.35); position: sticky; top:0; z-index:3; }
     table.data-table th, table.data-table td { padding:12px 8px; border-bottom:1px solid rgba(255,255,255,0.06); white-space:nowrap; }
     table.data-table th.sortable { cursor:pointer; user-select:none; }
     table.data-table th.sortable:hover { color:#bfdbfe; }
     table.data-table tbody tr { cursor:pointer; }
     table.data-table tbody tr:hover td { background: rgba(255,255,255,0.035); }
-    table.data-table td[data-col]:not([data-col="item"]):not([data-col="category"]):not([data-col="faction"]):not([data-col="risk"]) { text-align:right; }
-    table.data-table td[data-col="risk"] { text-align:center; }
+    table.data-table th, table.data-table td { text-align:left !important; }
+    table.data-table thead th[data-col]:not([data-col="item"]):not([data-col="category"]):not([data-col="faction"]):not([data-col="risk"]) { text-align:right !important; }
+    table.data-table thead th[data-col="risk"] { text-align:center !important; }
+    table.data-table td[data-col]:not([data-col="item"]):not([data-col="category"]):not([data-col="faction"]):not([data-col="risk"]) { text-align:right !important; }
+    table.data-table td[data-col="risk"] { text-align:center !important; }
 
     table.data-table .sticky-col { position: sticky; left: 0; background: transparent; z-index:2; }
     table.data-table thead th.sticky-col { z-index: 4; }
@@ -564,10 +567,11 @@
     }
 
     async function init() {
+      const baseUrl = new URL(".", window.location.href);
       const [res, cfgRes, itemCfgRes] = await Promise.all([
-        fetch("/json/lp_items.json"),
-        fetch("/config/lp_corps_config.json").catch(() => null),
-        fetch("/config/lp_items_config.json").catch(() => null),
+        fetch(new URL("json/lp_items.json", baseUrl)),
+        fetch(new URL("config/lp_corps_config.json", baseUrl)).catch(() => null),
+        fetch(new URL("config/lp_items_config.json", baseUrl)).catch(() => null),
       ]);
       const data = await res.json();
       items = data.items || [];

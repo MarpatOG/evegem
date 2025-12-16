@@ -74,15 +74,16 @@
     .chart-tooltip { position:absolute; pointer-events:none; display:none; background:#0b1220; border:1px solid #223144; border-radius:10px; padding:8px; font-size:12px; color:var(--text); box-shadow:0 8px 30px rgba(0,0,0,0.5); max-width: 260px; }
 
     .table-wrap { overflow-x:auto; overflow-y:visible; max-height:none; }
-    table.data-table { width:100%; border-collapse:collapse; font-size:14px; font-variant-numeric: tabular-nums; }
+    table.data-table { width:100%; border-collapse:separate; border-spacing:0; font-size:14px; font-variant-numeric: tabular-nums; }
     table.data-table thead th { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color: var(--muted); font-weight:700; padding:10px 8px; background: rgba(15,23,42,0.35); position:sticky; top:0; z-index:3; }
     table.data-table th, table.data-table td { padding:12px 8px; border-bottom:1px solid rgba(255,255,255,0.06); white-space:nowrap; }
     table.data-table th.sortable { cursor:pointer; user-select:none; }
     table.data-table th.sortable:hover { color:#bfdbfe; }
     table.data-table tbody tr { cursor:pointer; }
     table.data-table tbody tr:hover td { background: rgba(255,255,255,0.035); }
-    table.data-table td[data-col]:not([data-col="corp"]):not([data-col="faction"]):not([data-col="req"]) { text-align:right; }
-    table.data-table td[data-col="corp"], table.data-table td[data-col="faction"], table.data-table td[data-col="req"] { text-align:left; }
+    table.data-table th, table.data-table td { text-align:left !important; }
+    table.data-table thead th[data-col]:not([data-col="corp"]):not([data-col="faction"]):not([data-col="req"]) { text-align:right !important; }
+    table.data-table td[data-col]:not([data-col="corp"]):not([data-col="faction"]):not([data-col="req"]) { text-align:right !important; }
     table.data-table .sticky-col { position: sticky; left: 0; background: transparent; z-index:2; }
     table.data-table thead th.sticky-col { z-index: 4; }
     table.data-table .key { font-weight:700; color:#93c5fd; }
@@ -494,10 +495,11 @@
       renderInstantSell();
       try {
         const regionId = 10000002; // The Forge
+        const baseUrl = new URL(".", window.location.href);
         // Pages mode: try static snapshot first (optional). Falls back to /api locally.
         let data = null;
         try {
-          const staticRes = await fetch(`/json/buy_orders_${regionId}.json`);
+          const staticRes = await fetch(new URL(`json/buy_orders_${regionId}.json`, baseUrl));
           if (staticRes.ok) {
             const snap = await staticRes.json();
             const list = snap?.ordersByType?.[String(itemId)];
@@ -516,7 +518,7 @@
         }
 
         if (!data) {
-          const res = await fetch(`/api/buy_orders?region=${regionId}&type=${encodeURIComponent(itemId)}`);
+          const res = await fetch(new URL(`api/buy_orders?region=${regionId}&type=${encodeURIComponent(itemId)}`, baseUrl));
           data = await res.json();
           if (!res.ok || data?.error) data = null;
         }
@@ -747,10 +749,11 @@
       if (!itemId) return;
       itemChartMeta.textContent = "Loading market history...";
       try {
+        const baseUrl = new URL(".", window.location.href);
         // Pages mode: use prebuilt history bundle if present. Falls back to /api locally.
         let data = null;
         try {
-          const staticRes = await fetch(`/json/market_history_10000002_90d.json`);
+          const staticRes = await fetch(new URL("json/market_history_10000002_90d.json", baseUrl));
           if (staticRes.ok) {
             const bundle = await staticRes.json();
             const s = bundle?.seriesByType?.[String(itemId)];
@@ -763,7 +766,7 @@
         }
 
         if (!data) {
-          const r = await fetch(`/api/market_history?region=10000002&type=${encodeURIComponent(itemId)}&days=90`);
+          const r = await fetch(new URL(`api/market_history?region=10000002&type=${encodeURIComponent(itemId)}&days=90`, baseUrl));
           data = await r.json();
         }
 
@@ -783,11 +786,12 @@
     }
 
     async function init() {
+      const baseUrl = new URL(".", window.location.href);
       const [r1, r2, cfgRes, itemCfgRes] = await Promise.all([
-        fetch("/json/lp_items.json"),
-        fetch("/json/lp_item_offers.json"),
-        fetch("/config/lp_corps_config.json").catch(() => null),
-        fetch("/config/lp_items_config.json").catch(() => null),
+        fetch(new URL("json/lp_items.json", baseUrl)),
+        fetch(new URL("json/lp_item_offers.json", baseUrl)),
+        fetch(new URL("config/lp_corps_config.json", baseUrl)).catch(() => null),
+        fetch(new URL("config/lp_items_config.json", baseUrl)).catch(() => null),
       ]);
       itemsIndex = (await r1.json()).items || [];
       offersByItem = await r2.json();
